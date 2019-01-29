@@ -1,0 +1,16 @@
+{
+  "name": "audio-player",
+  "version": "1.0.0",
+  "description": "Custom Element audio player",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/dannymoerkerke/audio-player.git"
+  },
+  "author": "Danny Moerkerke <danny@dannymoerkerke.nl>",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/dannymoerkerke/audio-player#readme"
+}
