@@ -11,12 +11,15 @@ export class AudioPlayer extends HTMLElement {
 
     shadowRoot.innerHTML = `
             <style>
-                
+                :host {
+                  display: block;
+                  border: 1px solid #ff0000;
+                }
             </style>
             
             <div class="container">
               <div id="waveform-container">
-                <canvas id="waveform"></canvas>
+                <canvas id="waveform" width="400" height="400"></canvas>
               </div>
               
               <div id="progress-container">
@@ -25,6 +28,7 @@ export class AudioPlayer extends HTMLElement {
               
               <div id="processing-progress"></div>
               <div id="processing-percentage"></div>
+              <input type="file" id="file-input">
             </div>
             
             
@@ -36,7 +40,7 @@ export class AudioPlayer extends HTMLElement {
     this.processing = false;
     this.playing = false;
     this.ready = false;
-    this.context = AudioContext;
+    this.context = new AudioContext();
     this.source = this.context.createBufferSource();
     this.downloadProgress = 0;
     this.downloadProgressComputable = false;
@@ -63,6 +67,7 @@ export class AudioPlayer extends HTMLElement {
 
     this.processingProgressBar = this.shadowRoot.querySelector('#processing-progress');
     this.processingPercentage = this.shadowRoot.querySelector('#processing-percentage');
+    this.fileInput = this.shadowRoot.querySelector('#file-input');
   }
 
   connectedCallback() {
@@ -83,6 +88,18 @@ export class AudioPlayer extends HTMLElement {
 
     this.canvasWidth = this.canvas.width;
     this.canvasHeight = this.canvas.height;
+
+    this.waveformContainer.addEventListener('click', this.handleWaveformClick.bind(this));
+    this.fileInput.addEventListener('change', this.loadFile.bind(this));
+  }
+
+  handleWaveformClick(e) {
+    if(this.playing) {
+      this.playPause();
+    }
+    this.progressContainer.style.width = `${e.offsetX}px`;
+    this.pauseTime = (e.offsetX / this.canvasWidth) * this.duration;
+    this.showElapsedTime(this.pauseTime);
   }
 
   attributeChangedCallback(attr, oldVal, newVal) {
@@ -95,6 +112,31 @@ export class AudioPlayer extends HTMLElement {
 
   stringToArrayBuffer(byteString) {
     return new Uint8Array(byteString.length).map((_, i) => byteString.codePointAt(i));
+  }
+
+  getArrayBuffer(blob) {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(blob);
+
+    return new Promise((resolve, reject) => {
+      reader.onloadend = e => resolve(e.target.result);
+      reader.onerror = err => reject(err);
+    });
+  }
+
+  loadFile(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader;
+    reader.readAsArrayBuffer(file);
+
+    return new Promise((resolve, reject) => {
+      reader.onloadend = (e) => {
+        const buffer = e.target.result;
+
+        this.loadAudio(buffer);
+        resolve(buffer)
+      };
+    })
   }
 
   sliceAudio(buffer, start, end) {
@@ -127,36 +169,158 @@ export class AudioPlayer extends HTMLElement {
     });
   }
 
+  async getAudioBuffers(buffer) {
+    const bufferLength = buffer.byteLength;
+    const chunkLength =  bufferLength > this.maxChunkLength ? this.maxChunkLength : bufferLength;
+
+    let start = 0;
+    let end = start + chunkLength;
+    const self = this;
+
+    const slice = (buffer, start, end) => {
+      async function* gen() {
+        while(start < bufferLength) {
+          const decodedBuffer = await self.sliceAudio(buffer, start, end);
+          yield decodedBuffer;
+
+          start += chunkLength;
+          end = start + chunkLength > bufferLength ? bufferLength : start + chunkLength;
+        }
+      }
+
+      return gen();
+    };
+
+    const audioBuffers = [];
+
+    for await (const decodedBuffer of slice(buffer, start, end)) {
+      audioBuffers.push(decodedBuffer);
+    }
+
+    return audioBuffers;
+  }
+
+  async loadAudio(buffer) {
+    this.processedBuffers = 0;
+    this.audioBuffers = await this.getAudioBuffers(buffer);
+
+    this.audioNodes = this.audioBuffers.map(buffer => {
+      const source = this.context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.context.destination);
+
+      return source;
+    });
+
+    const waveformData = this.getWaveformData(this.audioBuffers);
+    this.renderWaveform(waveformData);
+  }
+
+  playAudio(audioNodes) {
+    this.startTime = this.context.currentTime;
+
+    const playSources = (sources, offset = 0) => {
+      if(sources.length) {
+        const src = sources.shift();
+
+        src.onended = () => this.playing ? playSources(sources) : this.stopAudio();
+
+        this.curSource = src;
+        src.start(0, offset);
+      }
+      else {
+        this.stopAudio();
+      }
+    };
+
+    let offset = this.pauseTime;
+
+    const nodes = this.pauseTime > 0 ? this.getNodesAfterOffset(audioNodes, this.pauseTime) : [audioNodes, offset];
+
+    playSources(...nodes);
+  }
+
+  getNodesAfterOffset(nodes, offset) {
+    let duration = 0;
+    let skipped = 0;
+
+    const remaining = nodes.filter(node => {
+      duration += node.buffer.duration;
+      skipped += duration < offset ? node.buffer.duration : 0;
+
+      return duration > offset;
+    });
+
+    return [remaining, offset - skipped];
+  }
+
+  playPause() {
+    const progress = () => {
+      const diff = (this.context.currentTime - this.startTime) + this.pauseTime;
+      this.showElapsedTime(diff);
+      const progressWidth = ((diff / this.duration) * this.canvasWidth);
+      this.progressContainer.style.width = progressWidth + 'px';
+
+      this.timerId = requestAnimationFrame(progress);
+    };
+
+    if(this.playing) {
+      this.playing = false;
+      this.curSource.stop();
+      this.pauseTime = (this.context.currentTime - this.startTime) + this.pauseTime;
+      cancelAnimationFrame(this.timerId);
+    }
+    else {
+      this.playAudio(this.audioBuffers);
+      requestAnimationFrame(progress);
+      this.playing = true;
+    }
+  }
+
+  stopAudio() {
+    cancelAnimationFrame(this.timerId);
+    this.curSource.stop();
+    this.timeDisplay = {
+      hours: '00',
+      seconds: '00',
+      minutes: '00'
+    };
+
+    this.playing = false;
+    this.progressContainer.style.width = 0;
+    this.pauseTime = 0;
+  }
+
+  showElapsedTime(seconds) {
+    const minute = 60;
+    const hour = 3600;
+
+    this.hours = Math.floor(seconds / hour);
+    this.minutes = Math.floor((seconds % hour) / minute);
+    this.seconds = Math.floor(seconds) % minute;
+
+    // store seconds in this.seconds to only update the display once per second
+    if(seconds !==  this.secs) {
+      this.secs = seconds;
+      this.timeDisplay.hours = this.hours < 10 ? `0${this.hours}` : this.hours;
+      this.timeDisplay.seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
+      this.timeDisplay.minutes = this.minutes < 10 ? `0${this.minutes}` : this.minutes;
+    }
+  }
+
   getWaveformData(buffers) {
     const dataArrays = buffers.map(buffer => buffer.getChannelData(0));
     const totalLength = dataArrays.reduce((total, data) => total + data.length, 0);
 
     let offset = 0;
-    this.channelData = new Float32Array(totalLength);
+    const channelData = new Float32Array(totalLength);
 
     dataArrays.forEach(data => {
-      this.channelData.set(data, offset);
+      channelData.set(data, offset);
       offset += data.length;
     });
 
-    this.renderWaveform(this.channelData);
-
-    // var totalLength = buffers.reduce(function(total, buffer) {
-    //   var data = buffer.getChannelData(0);
-    //   dataArrays.push(data);
-    //
-    //   return total + data.length;
-    // }, 0);
-    //
-    // var offset = 0;
-    // this.channelData = new Float32Array(totalLength);
-    //
-    // dataArrays.forEach(function(arr) {
-    //   self.channelData.set(arr, offset);
-    //   offset += arr.length;
-    // });
-    //
-    // this.renderWaveform(this.channelData);
+    return channelData;
   }
 
   renderWaveform(channelData) {
