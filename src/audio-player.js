@@ -10,29 +10,47 @@ export class AudioPlayer extends HTMLElement {
     const shadowRoot = this.attachShadow({mode: 'open'});
 
     shadowRoot.innerHTML = `
-            <style>
-                :host {
-                  display: block;
-                  border: 1px solid #ff0000;
-                }
-            </style>
-            
-            <div class="container">
-              <div id="waveform-container">
-                <canvas id="waveform" width="400" height="400"></canvas>
-              </div>
-              
-              <div id="progress-container">
-                <canvas id="progress"></canvas>
-              </div>
-              
-              <div id="processing-progress"></div>
-              <div id="processing-percentage"></div>
-              <input type="file" id="file-input">
-            </div>
-            
-            
-        `;
+      <style>
+          :host {
+            display: block;
+            border: 1px solid #ff0000;
+          }
+          
+          #container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+          }
+          
+          #waveform-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+          }
+          
+          #progress-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            width: 0;
+          }
+      </style>
+      
+      <input type="file" id="file-input">
+      <div id="container">
+        <div id="waveform-container">
+          <canvas id="waveform" width="400" height="400"></canvas>
+        </div>
+        
+        <div id="progress-container">
+          <canvas id="progress" width="400" height="400"></canvas>
+        </div>
+        
+        <div id="processing-progress"></div>
+        <div id="processing-percentage"></div>
+      </div>
+    `;
 
     this.blobReady = false;
     this.audioReady = false;
@@ -62,6 +80,7 @@ export class AudioPlayer extends HTMLElement {
     this.canvasContext = this.canvas.getContext('2d');
     this.progressCanvas = this.shadowRoot.querySelector('#progress');
     this.progressCanvasContext = this.progressCanvas.getContext('2d');
+    this.container = this.shadowRoot.querySelector('#container');
     this.waveformContainer = this.shadowRoot.querySelector('#waveform-container');
     this.progressContainer = this.shadowRoot.querySelector('#progress-container');
 
@@ -89,7 +108,7 @@ export class AudioPlayer extends HTMLElement {
     this.canvasWidth = this.canvas.width;
     this.canvasHeight = this.canvas.height;
 
-    this.waveformContainer.addEventListener('click', this.handleWaveformClick.bind(this));
+    this.container.addEventListener('click', this.handleWaveformClick.bind(this));
     this.fileInput.addEventListener('change', this.loadFile.bind(this));
   }
 
@@ -134,9 +153,9 @@ export class AudioPlayer extends HTMLElement {
         const buffer = e.target.result;
 
         this.loadAudio(buffer);
-        resolve(buffer)
+        resolve(buffer);
       };
-    })
+    });
   }
 
   sliceAudio(buffer, start, end) {
@@ -171,7 +190,7 @@ export class AudioPlayer extends HTMLElement {
 
   async getAudioBuffers(buffer) {
     const bufferLength = buffer.byteLength;
-    const chunkLength =  bufferLength > this.maxChunkLength ? this.maxChunkLength : bufferLength;
+    const chunkLength = bufferLength > this.maxChunkLength ? this.maxChunkLength : bufferLength;
 
     let start = 0;
     let end = start + chunkLength;
@@ -300,7 +319,7 @@ export class AudioPlayer extends HTMLElement {
     this.seconds = Math.floor(seconds) % minute;
 
     // store seconds in this.seconds to only update the display once per second
-    if(seconds !==  this.secs) {
+    if(seconds !== this.secs) {
       this.secs = seconds;
       this.timeDisplay.hours = this.hours < 10 ? `0${this.hours}` : this.hours;
       this.timeDisplay.seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
@@ -327,24 +346,24 @@ export class AudioPlayer extends HTMLElement {
     const drawLines = 2000;
     const totallength = channelData.length;
     const eachBlock = Math.floor(totallength / drawLines);
-    const lineGap = (this.canvasWidth/drawLines);
+    const lineGap = (this.canvasWidth / drawLines);
 
     this.canvases.forEach(canvas => {
       canvas.context.save();
       canvas.context.fillStyle = canvas.fillStyle;
-      canvas.context.fillRect(0, 0, this.canvasWidth, this.canvasHeight );
+      canvas.context.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
       canvas.context.strokeStyle = canvas.strokeStyle;
-      canvas.context.translate(0,this.canvasHeight / 2);
+      canvas.context.translate(0, this.canvasHeight / 2);
       canvas.context.lineWidth = 1;
       canvas.context.beginPath();
 
-      for(let i=0; i <= drawLines; i++){
+      for(let i = 0; i <= drawLines; i++) {
         const audioBuffKey = Math.floor(eachBlock * i);
         const x = i * lineGap;
         const y = channelData[audioBuffKey] * this.canvasHeight * 0.8;
 
-        canvas.context.moveTo( x, y );
-        canvas.context.lineTo( x, (y * -1) );
+        canvas.context.moveTo(x, y);
+        canvas.context.lineTo(x, (y * -1));
       }
 
       canvas.context.stroke();
@@ -354,10 +373,10 @@ export class AudioPlayer extends HTMLElement {
     this.audioReady = true;
   }
 
-  clearWaveform () {
+  clearWaveform() {
     this.canvases.forEach(canvas => canvas.context.clearRect(0, 0, canvas.element.width, canvas.element.height));
   }
 
 }
 
-customElements.define('audio-player',  AudioPlayer);
+customElements.define('audio-player', AudioPlayer);
