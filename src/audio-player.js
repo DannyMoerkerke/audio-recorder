@@ -1,3 +1,5 @@
+import '../node_modules/material-custom-elements/src/material-button.js';
+
 export class AudioPlayer extends HTMLElement {
 
   static get observedAttributes() {
@@ -10,6 +12,7 @@ export class AudioPlayer extends HTMLElement {
     const shadowRoot = this.attachShadow({mode: 'open'});
 
     shadowRoot.innerHTML = `
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
       <style>
           :host {
             display: block;
@@ -34,10 +37,16 @@ export class AudioPlayer extends HTMLElement {
             left: 0;
             overflow: hidden;
             width: 0;
+            border-right: 1px solid #0000ff;
           }
       </style>
       
       <input type="file" id="file-input">
+      <material-button id="play" raised>
+        <i class="material-icons" slot="left-icon">play_arrow</i>
+      </material-button>
+      
+      <div id="time"></div>
       <div id="container">
         <div id="waveform-container">
           <canvas id="waveform" width="400" height="400"></canvas>
@@ -87,6 +96,9 @@ export class AudioPlayer extends HTMLElement {
     this.processingProgressBar = this.shadowRoot.querySelector('#processing-progress');
     this.processingPercentage = this.shadowRoot.querySelector('#processing-percentage');
     this.fileInput = this.shadowRoot.querySelector('#file-input');
+    this.playButton = this.shadowRoot.querySelector('#play');
+    this.playButtonIcon = this.playButton.querySelector('i');
+    this.time = this.shadowRoot.querySelector('#time');
   }
 
   connectedCallback() {
@@ -110,12 +122,17 @@ export class AudioPlayer extends HTMLElement {
 
     this.container.addEventListener('click', this.handleWaveformClick.bind(this));
     this.fileInput.addEventListener('change', this.loadFile.bind(this));
+    this.playButton.addEventListener('click', this.playPause.bind(this));
   }
 
   handleWaveformClick(e) {
-    if(this.playing) {
-      this.playPause();
+    if(this.curSource) {
+      this.playing = false;
+      this.playButtonIcon.innerText = 'play_arrow';
+      this.curSource.stop();
+      cancelAnimationFrame(this.timerId);
     }
+
     this.progressContainer.style.width = `${e.offsetX}px`;
     this.pauseTime = (e.offsetX / this.canvasWidth) * this.duration;
     this.showElapsedTime(this.pauseTime);
@@ -143,19 +160,16 @@ export class AudioPlayer extends HTMLElement {
     });
   }
 
-  loadFile(e) {
+  async loadFile(e) {
     const file = e.target.files[0];
-    const reader = new FileReader;
-    reader.readAsArrayBuffer(file);
+    const buffer = await this.getArrayBuffer(file);
+    const audioBuffers = await this.getAudioBuffers(buffer);
+    this.audioBuffers = audioBuffers;
+    this.duration = audioBuffers.reduce((total, buffer) => total + buffer.duration, 0);
 
-    return new Promise((resolve, reject) => {
-      reader.onloadend = (e) => {
-        const buffer = e.target.result;
-
-        this.loadAudio(buffer);
-        resolve(buffer);
-      };
-    });
+    const waveformData = this.getWaveformData(audioBuffers);
+    this.renderWaveform(waveformData);
+    this.showElapsedTime(0);
   }
 
   sliceAudio(buffer, start, end) {
@@ -219,44 +233,14 @@ export class AudioPlayer extends HTMLElement {
     return audioBuffers;
   }
 
-  async loadAudio(buffer) {
-    this.processedBuffers = 0;
-    this.audioBuffers = await this.getAudioBuffers(buffer);
-
-    this.audioNodes = this.audioBuffers.map(buffer => {
+  getAudioNodes(audioBuffers) {
+    return audioBuffers.map(buffer => {
       const source = this.context.createBufferSource();
       source.buffer = buffer;
       source.connect(this.context.destination);
 
       return source;
     });
-
-    const waveformData = this.getWaveformData(this.audioBuffers);
-    this.renderWaveform(waveformData);
-  }
-
-  playAudio(audioNodes) {
-    this.startTime = this.context.currentTime;
-
-    const playSources = (sources, offset = 0) => {
-      if(sources.length) {
-        const src = sources.shift();
-
-        src.onended = () => this.playing ? playSources(sources) : this.stopAudio();
-
-        this.curSource = src;
-        src.start(0, offset);
-      }
-      else {
-        this.stopAudio();
-      }
-    };
-
-    let offset = this.pauseTime;
-
-    const nodes = this.pauseTime > 0 ? this.getNodesAfterOffset(audioNodes, this.pauseTime) : [audioNodes, offset];
-
-    playSources(...nodes);
   }
 
   getNodesAfterOffset(nodes, offset) {
@@ -273,6 +257,33 @@ export class AudioPlayer extends HTMLElement {
     return [remaining, offset - skipped];
   }
 
+  playAudio(audioBuffers) {
+    const audioNodes = this.getAudioNodes(audioBuffers);
+
+    this.startTime = this.context.currentTime;
+
+    const playSources = (sources, offset = 0) => {
+      if(sources.length) {
+        const src = sources.shift();
+
+        src.onended = (e) => {
+          console.log('ended', e);
+          this.playing ? playSources(sources) : null;
+        };
+
+        this.curSource = src;
+        src.start(0, offset);
+      }
+      else {
+        this.stopAudio();
+      }
+    };
+
+    const [nodes, offset = this.pauseTime] = this.pauseTime > 0 ? this.getNodesAfterOffset(audioNodes, this.pauseTime) : [audioNodes];
+
+    playSources(nodes, offset);
+  }
+
   playPause() {
     const progress = () => {
       const diff = (this.context.currentTime - this.startTime) + this.pauseTime;
@@ -285,46 +296,53 @@ export class AudioPlayer extends HTMLElement {
 
     if(this.playing) {
       this.playing = false;
+      this.playButtonIcon.innerText = 'play_arrow';
       this.curSource.stop();
-      this.pauseTime = (this.context.currentTime - this.startTime) + this.pauseTime;
       cancelAnimationFrame(this.timerId);
+      this.pauseTime = (this.context.currentTime - this.startTime) + this.pauseTime;
     }
     else {
+      this.playing = true;
+      this.playButtonIcon.innerText = 'pause';
       this.playAudio(this.audioBuffers);
       requestAnimationFrame(progress);
-      this.playing = true;
     }
   }
 
   stopAudio() {
-    cancelAnimationFrame(this.timerId);
+    this.playing = false;
+    this.playButtonIcon.innerText = 'play_arrow';
     this.curSource.stop();
+    cancelAnimationFrame(this.timerId);
+
+    this.pauseTime = 0;
     this.timeDisplay = {
       hours: '00',
       seconds: '00',
       minutes: '00'
     };
 
-    this.playing = false;
     this.progressContainer.style.width = 0;
-    this.pauseTime = 0;
+    this.showElapsedTime(0);
   }
 
-  showElapsedTime(seconds) {
+  showElapsedTime(secs) {
     const minute = 60;
     const hour = 3600;
 
-    this.hours = Math.floor(seconds / hour);
-    this.minutes = Math.floor((seconds % hour) / minute);
-    this.seconds = Math.floor(seconds) % minute;
+    this.hours = Math.floor(secs / hour);
+    this.minutes = Math.floor((secs % hour) / minute);
+    this.seconds = Math.floor(secs) % minute;
 
     // store seconds in this.seconds to only update the display once per second
-    if(seconds !== this.secs) {
-      this.secs = seconds;
+    if(secs !== this.secs) {
+      this.secs = secs;
       this.timeDisplay.hours = this.hours < 10 ? `0${this.hours}` : this.hours;
       this.timeDisplay.seconds = this.seconds < 10 ? `0${this.seconds}` : this.seconds;
       this.timeDisplay.minutes = this.minutes < 10 ? `0${this.minutes}` : this.minutes;
     }
+    const {hours, minutes, seconds} = this.timeDisplay;
+    this.time.innerHTML = `${hours}:${minutes}:${seconds}`;
   }
 
   getWaveformData(buffers) {
@@ -366,6 +384,12 @@ export class AudioPlayer extends HTMLElement {
         canvas.context.lineTo(x, (y * -1));
       }
 
+      canvas.context.stroke();
+      canvas.context.restore();
+
+      canvas.context.strokeStyle = canvas.strokeStyle;
+      canvas.context.moveTo(0, this.canvasHeight / 2);
+      canvas.context.lineTo(this.canvasWidth, this.canvasHeight / 2);
       canvas.context.stroke();
       canvas.context.restore();
     });

@@ -16,5 +16,8 @@
   "homepage": "https://bitbucket.org/dannymoerkerke/audio-player#readme",
   "devDependencies": {
     "local-web-server": "^2.6.1"
+  },
+  "dependencies": {
+    "material-custom-elements": "git@bitbucket.org:dannymoerkerke/material-custom-elements.git"
   }
 }
