@@ -284,6 +284,7 @@ export class AudioPlayer extends HTMLElement {
   async loadFile(e) {
     const file = e.target.files[0];
     const buffer = await this.getArrayBuffer(file);
+    this.header = buffer.slice(0, 44);
     const audioBuffers = await this.getAudioBuffers(buffer);
     this.audioBuffers = audioBuffers;
     this.duration = audioBuffers.reduce((total, buffer) => total + buffer.duration, 0);
