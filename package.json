@@ -18,6 +18,6 @@
     "local-web-server": "^2.6.1"
   },
   "dependencies": {
-    "material-custom-elements": "git@bitbucket.org:dannymoerkerke/material-custom-elements.git"
+    "@dannymoerkerke/material-webcomponents": "^1.2.10"
   }
 }

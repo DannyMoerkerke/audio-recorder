@@ -1,10 +1,10 @@
-import '../node_modules/material-custom-elements/src/material-button.js';
-import '../node_modules/material-custom-elements/src/material-slider.js';
+import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-button.js';
+import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-slider.js';
 
 export class AudioPlayer extends HTMLElement {
 
   static get observedAttributes() {
-    return [];
+    return ['view'];
   }
 
   constructor() {
@@ -14,6 +14,7 @@ export class AudioPlayer extends HTMLElement {
 
     shadowRoot.innerHTML = `
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      
       <style>
           :host {
             display: block;
@@ -23,19 +24,52 @@ export class AudioPlayer extends HTMLElement {
           material-slider {
             --track-height: 1px;
             --thumb-size: 12px;
-            
           }
           
+          #buttons {
+            display: flex;
+            flex-direction: row;
+          }
           #container {
             position: relative;
-            width: 400px;
-            height: 400px;
+            /*width: 400px;*/
+            height: 200px;
           }
           
-          #waveform-container {
+          #waveform-container,
+          #frequencies-container {
             position: absolute;
             top: 0;
             left: 0;
+          }
+          
+          #waveform-container {
+            display: block;
+          }
+          #frequencies-container {
+            z-index: 1;
+            display: none;
+            border: 1px solid red;
+          }
+          
+          :host([view="frequencies"]) #frequencies-container {
+            display: block;
+          }
+          
+          :host([view="frequencies"]) #frequencies-button {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+          }
+          
+          :host([view="waveform"]) #waveform-container {
+            display: block;
+          }
+          
+          :host([view="waveform"]) #waveform-button {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
           }
           
           #progress-container {
@@ -45,59 +79,126 @@ export class AudioPlayer extends HTMLElement {
             overflow: hidden;
             width: 0;
             border-right: 1px solid #0000ff;
-          }
-          #frequencies-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            opacity: 0;
+            /*opacity: 0;*/
           }
           
           #equalizer-container {
             width: 200px;
+            margin-left: 35px;
             transform: rotate(-90deg);
+          }
+
+          #file-input {
+            display: none;
+          }
+          
+          audio {
+            display: none;
+          }
+          
+          #stop-capture-audio,
+          #stop-record-audio {
+            display: none;
+          }
+          
+          #stop-record-audio {
+            --font-color: #ff0000;
+          }
+          
+          #record-audio {
+            --font-color: #ff0000;
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+          }
+          
+          :host([state="capturing"]) #stop-capture-audio,
+          :host([state="recording"]) #stop-capture-audio {
+            display: block;
+          }
+          :host([state="capturing"]) #capture-audio,
+          :host([state="recording"]) #capture-audio {
+            display: none;
+          }
+          
+          :host([state="capturing"]) #record-audio {
+            opacity: 1;
+            cursor: pointer;
+            pointer-events: initial;
+          }
+          
+          :host([state="recording"]) #stop-record-audio {
+            display: block;
+          }
+          :host([state="recording"]) #record-audio {
+            display: none;
           }
       </style>
       
+      <audio id="input" controls></audio>
+      
       <input type="file" id="file-input">
-      <material-button id="play" raised>
-        <i class="material-icons" slot="left-icon">play_arrow</i>
-      </material-button>
+      
+      <div id="buttons">
+        <material-button id="play" raised>
+          <i class="material-icons" slot="left-icon">play_arrow</i>
+        </material-button>
+  
+        <material-button id="frequencies-button" raised>
+          <i class="material-icons" slot="left-icon">equalizer</i>
+        </material-button>
+        
+        <material-button id="waveform-button" raised>
+          <i class="material-icons" slot="left-icon">graphic_eq</i>
+        </material-button>
+  
+        <material-button id="add-file" raised>
+          <i class="material-icons" slot="left-icon">folder</i>
+        </material-button>
+        
+        <material-button id="capture-audio" raised>
+          <i class="material-icons" slot="left-icon">mic</i>
+        </material-button>
+        
+        <material-button id="stop-capture-audio" raised>
+          <i class="material-icons" slot="left-icon">mic_off</i>
+        </material-button>
+        
+        <material-button id="record-audio" raised>
+          <i class="material-icons" slot="left-icon">fiber_manual_record</i>
+        </material-button>
+        
+        <material-button id="stop-record-audio" raised>
+          <i class="material-icons" slot="left-icon">stop</i>
+        </material-button>
+      </div>
       
       <material-slider id="volume" value="100" max="100"></material-slider>
       
       <span id="elapsed-time"></span> / <span id="total-time"></span>
       
       <div id="container">
+        <div id="frequencies-container">
+          <canvas id="frequencies" width="600" height="200"></canvas>
+        </div>
+
         <div id="waveform-container">
-          <canvas id="waveform" width="400" height="400"></canvas>
+          <canvas id="waveform" width="600" height="200"></canvas>
         </div>
         
         <div id="progress-container">
-          <canvas id="progress" width="400" height="400"></canvas>
+          <canvas id="progress" width="600" height="200"></canvas>
         </div>
         
-        <div id="frequencies-container">
-          <canvas id="frequencies" width="400" height="400"></canvas>
-        </div>
-        
+      </div>
         <div id="processing-progress"></div>
         <div id="processing-percentage"></div>
-      </div>
     `;
 
-    this.blobReady = false;
-    this.audioReady = false;
     this.loading = false;
-    this.processing = false;
     this.playing = false;
     this.ready = false;
-    this.context = new AudioContext();
-    this.gainNode = this.context.createGain();
-    this.output = this.context.destination;
-    this.analyser = this.context.createAnalyser();
     this.downloadProgress = 0;
-    this.downloadProgressComputable = false;
     this.processingProgress = 0;
     this.hours = 0;
     this.minutes = 0;
@@ -105,6 +206,12 @@ export class AudioPlayer extends HTMLElement {
     this.secs = 0;
     this.pauseTime = 0;
     this.audioBuffers = [];
+    this.frequencies = false;
+    this.state = 'idle';
+    this.view = 'frequencies';
+
+    this.mediaElementSource = null;
+    this.mediaStreamSource = null;
 
     this.maxChunkLength = 524000; //1024000 * 50;
     this.canvas = this.shadowRoot.querySelector('#waveform');
@@ -126,69 +233,14 @@ export class AudioPlayer extends HTMLElement {
     this.elapsedTime = this.shadowRoot.querySelector('#elapsed-time');
     this.totalTime = this.shadowRoot.querySelector('#total-time');
     this.volume = this.shadowRoot.querySelector('#volume');
-    this.audio = this.shadowRoot.querySelector('audio');
-
-    const filters = [
-      {
-        type: 'lowshelf',
-        frequency: 64.0,
-      },
-      {
-        type: 'peaking',
-        frequency: 125.0,
-        q: 0.5
-      },
-      {
-        type: 'peaking',
-        frequency: 500.0,
-        q: 0.5
-      },
-      {
-        type: 'peaking',
-        frequency: 1000.0,
-        q: 0.5
-      },
-      {
-        type: 'peaking',
-        frequency: 2000.0,
-        q: 0.5
-      },
-      {
-        type: 'peaking',
-        frequency: 4000.0,
-        q: 0.5
-      },
-      {
-        type: 'peaking',
-        frequency: 8000.0,
-        q: 0.5
-      },
-      {
-        type: 'highshelf',
-        frequency: 16000.0
-      }
-    ];
-
-    this.filters = filters.map(({type, frequency, q}) => {
-      const filter = this.context.createBiquadFilter();
-      filter.type = type;
-      filter.frequency.value = frequency;
-
-      if(q) {
-        filter.Q.value = q;
-      }
-
-      filter.gain.value = 0.0;
-
-      return filter;
-    });
-
-    this.equalizer = this.filters.reduce((destination, filter) => {
-      destination.connect(filter);
-      return filter;
-    }, this.gainNode);
-
-    this.createEqualizerHTML(this.filters);
+    this.input = this.shadowRoot.querySelector('audio');
+    this.freqButton = this.shadowRoot.querySelector('#frequencies-button');
+    this.waveformButton = this.shadowRoot.querySelector('#waveform-button');
+    this.addFileButton = this.shadowRoot.querySelector('#add-file');
+    this.captureAudioButton = this.shadowRoot.querySelector('#capture-audio');
+    this.stopCaptureAudioButton = this.shadowRoot.querySelector('#stop-capture-audio');
+    this.recordAudioButton = this.shadowRoot.querySelector('#record-audio');
+    this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
   }
 
   connectedCallback() {
@@ -197,7 +249,7 @@ export class AudioPlayer extends HTMLElement {
         element: this.canvas,
         context: this.canvasContext,
         fillStyle: '#ffffff',
-        strokeStyle: '#337AB7'
+        strokeStyle: '#337ab7'
       },
       {
         element: this.progressCanvas,
@@ -214,9 +266,228 @@ export class AudioPlayer extends HTMLElement {
     this.showElapsedTime(0);
 
     this.container.addEventListener('click', this.handleWaveformClick.bind(this));
-    this.fileInput.addEventListener('change', this.loadFile.bind(this));
+    this.fileInput.addEventListener('change', e => this.openFile(e.target.files[0]));
     this.playButton.addEventListener('click', this.playPause.bind(this));
     this.volume.addEventListener('change', e => this.setVolume(e.detail.value / 100));
+    this.input.addEventListener('ended', this.stopAudio.bind(this));
+    this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
+    this.waveformButton.addEventListener('click', this.showWaveform.bind(this));
+    this.addFileButton.addEventListener('click', () => this.shadowRoot.querySelector('#file-input').click());
+    this.captureAudioButton.addEventListener('click', this.captureAudio.bind(this));
+    this.stopCaptureAudioButton.addEventListener('click', this.stopCaptureAudio.bind(this));
+    this.recordAudioButton.addEventListener('click', this.recordAudio.bind(this));
+    this.stopRecordAudioButton.addEventListener('click', this.stopRecordAudio.bind(this));
+
+    const init = () => {
+      console.log('init');
+
+      this.context = new AudioContext();
+      this.output = this.context.destination;
+      this.gainNode = this.context.createGain();
+      this.analyser = this.context.createAnalyser();
+      this.analyser.fftSize = 256;
+
+      const filters = [
+        {
+          type: 'lowshelf',
+          frequency: 63.0,
+        },
+        {
+          type: 'peaking',
+          frequency: 125.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 250.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 400.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 630.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 1000.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 1600.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 2500.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 4000.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 6300.0,
+          q: 0.5
+        },
+        {
+          type: 'peaking',
+          frequency: 10000.0,
+          q: 0.5
+        },
+        {
+          type: 'highshelf',
+          frequency: 15000.0
+        }
+      ];
+
+      this.filters = filters.map(({type, frequency, q}) => {
+        const filter = this.context.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = frequency;
+
+        if(q) {
+          filter.Q.value = q;
+        }
+
+        filter.gain.value = 0.0;
+
+        return filter;
+      });
+
+      this.equalizer = this.filters.reduce((destination, filter) => {
+        destination.connect(filter);
+        return filter;
+      }, this.gainNode);
+
+      this.createEqualizerHTML(this.filters);
+
+      document.removeEventListener('mousedown', init);
+    };
+
+    document.addEventListener('mousedown', init);
+  }
+
+  getMediaElementSource(input) {
+    if(!this.mediaElementSource) {
+      this.mediaElementSource = this.context.createMediaElementSource(input);
+
+      this.mediaElementSource.connect(this.analyser);
+      this.mediaElementSource.connect(this.gainNode);
+      this.equalizer.connect(this.output);
+    }
+
+    return this.mediaElementSource;
+  }
+
+  getMediaStreamSource(input) {
+    if(!this.mediaStreamSource) {
+      this.mediaStreamSource = this.context.createMediaStreamSource(input);
+
+      this.mediaStreamSource.connect(this.analyser);
+      this.mediaStreamSource.connect(this.gainNode);
+      this.equalizer.connect(this.output);
+    }
+
+    return this.mediaStreamSource;
+  }
+
+  async initializeAudio(input) {
+    console.log('initializeAudio', input);
+    this.curSource = input instanceof HTMLAudioElement ? this.getMediaElementSource(input) : this.getMediaStreamSource(input);
+
+    this.curSource.connect(this.analyser);
+    this.curSource.connect(this.gainNode);
+    this.equalizer.connect(this.output);
+  }
+
+  async openFile(file) {
+    await this.loadFile(file);
+    await this.initializeAudio(this.input);
+  }
+
+  async loadFile(file) {
+    console.log('loadfile', file);
+    // this.stopCaptureAudio();
+    const reader = new FileReader();
+
+    reader.onloadend = e => this.input.src = e.target.result;
+    reader.readAsDataURL(file);
+
+    await this.renderWaveform(file);
+    // this.curSource.disconnect();
+    await this.initializeAudio(this.input);
+
+    this.view = 'waveform';
+  }
+
+  async captureAudio() {
+    console.log('capture audio');
+    this.stream = await navigator.mediaDevices.getUserMedia({audio: true});
+
+    await this.initializeAudio(this.stream);
+
+    this.renderFrequencyAnalyzer();
+    this.view = 'frequencies';
+    this.state = 'capturing';
+  }
+
+  stopCaptureAudio() {
+    if(this.stream) {
+      this.stream.getTracks().map(track => track.stop());
+      this.mediaStreamSource = null;
+      this.state = 'idle';
+    }
+  }
+
+  recordAudio() {
+    const chunks = [];
+
+    this.recorder = new MediaRecorder(this.stream);
+
+    this.recorder.start(250);
+
+    this.state = 'recording';
+
+    const handleStopRecording = async () => {
+      const recording = new Blob(chunks, {type: 'audio/mpeg'});
+
+      this.stopCaptureAudio();
+      await this.loadFile(recording);
+    };
+
+    const processChunk = ({data}) => {
+      if(data !== undefined && data.size !== 0) {
+        console.log('chunk');
+        chunks.push(data);
+
+        const recording = new Blob(chunks, {type: 'audio/mpeg'});
+        // this.renderWaveform(recording);
+        this.loadFile(recording);
+      }
+    };
+
+    this.recorder.addEventListener('dataavailable', processChunk);
+    this.recorder.addEventListener('stop', handleStopRecording);
+  }
+
+  stopRecordAudio() {
+    this.recorder.stop();
+  }
+
+  showFrequencyAnalyzer() {
+    this.view = 'frequencies';
+  }
+
+  showWaveform() {
+    this.view = 'waveform';
   }
 
   createEqualizerHTML(filters) {
@@ -226,12 +497,11 @@ export class AudioPlayer extends HTMLElement {
     const eqContainer = fragment.appendChild(div);
 
     filters.forEach((filter, i) => {
-      const html = `<material-slider min="-10" max="10" value="0" data-filter="${i}"></material-slider>`;
+      const html = `<material-slider min="-15" max="15" value="0" data-filter="${i}"></material-slider>`;
       eqContainer.insertAdjacentHTML('beforeend', html);
       const slider = eqContainer.lastChild;
 
       slider.addEventListener('change', (e) => {
-        console.log(slider.dataset.filter);
         const gain = e.detail.value;
         const index = slider.dataset.filter;
         filters[index].gain.setValueAtTime(gain, this.context.currentTime);
@@ -239,7 +509,7 @@ export class AudioPlayer extends HTMLElement {
 
     });
 
-    this.container.before(fragment);
+    this.container.after(fragment);
   }
 
   setVolume(value) {
@@ -250,21 +520,13 @@ export class AudioPlayer extends HTMLElement {
     if(this.curSource) {
       this.playing = false;
       this.playButtonIcon.innerText = 'play_arrow';
-      this.curSource.stop();
+      this.input.pause();
       cancelAnimationFrame(this.timerId);
     }
 
     this.progressContainer.style.width = `${e.offsetX}px`;
-    this.pauseTime = (e.offsetX / this.canvasWidth) * this.duration;
-    this.showElapsedTime(this.pauseTime);
-  }
-
-  attributeChangedCallback(attr, oldVal, newVal) {
-
-  }
-
-  disconnectedCallback() {
-
+    this.input.currentTime = (e.offsetX / this.canvasWidth) * this.duration;
+    this.showElapsedTime(this.input.currentTime);
   }
 
   stringToArrayBuffer(byteString) {
@@ -276,22 +538,9 @@ export class AudioPlayer extends HTMLElement {
     reader.readAsArrayBuffer(blob);
 
     return new Promise((resolve, reject) => {
-      reader.onloadend = e => resolve(e.target.result);
       reader.onerror = err => reject(err);
+      reader.onloadend = e => resolve(e.target.result);
     });
-  }
-
-  async loadFile(e) {
-    const file = e.target.files[0];
-    const buffer = await this.getArrayBuffer(file);
-    this.header = buffer.slice(0, 44);
-    const audioBuffers = await this.getAudioBuffers(buffer);
-    this.audioBuffers = audioBuffers;
-    this.duration = audioBuffers.reduce((total, buffer) => total + buffer.duration, 0);
-    console.log('audioBuffers', audioBuffers.length);
-    const waveformData = this.getWaveformData(audioBuffers);
-    this.renderWaveform(waveformData);
-    this.showTotalTime(this.duration);
   }
 
   sliceAudio(buffer, start, end) {
@@ -355,16 +604,6 @@ export class AudioPlayer extends HTMLElement {
     return audioBuffers;
   }
 
-  getAudioNodes(audioBuffers) {
-    return audioBuffers.map(buffer => {
-      const source = this.context.createBufferSource();
-      source.buffer = buffer;
-      // source.connect(this.context.destination);
-
-      return source;
-    });
-  }
-
   getNodesAfterOffset(nodes, offset) {
     let duration = 0;
     let skipped = 0;
@@ -379,39 +618,11 @@ export class AudioPlayer extends HTMLElement {
     return [remaining, offset - skipped];
   }
 
-  playAudio(audioBuffers) {
-    const audioNodes = this.getAudioNodes(audioBuffers);
-
-    this.startTime = this.context.currentTime;
-
-    const playSources = (sources, offset = 0) => {
-      if(sources.length) {
-        const src = sources.shift();
-
-        src.onended = (e) => {
-          console.log('ended', e);
-          this.playing ? playSources(sources) : null;
-        };
-
-        this.curSource = src;
-        this.curSource.connect(this.gainNode);
-        this.equalizer.connect(this.output);
-        this.curSource.start(0, offset);
-      }
-      else {
-        this.stopAudio();
-      }
-    };
-
-    const [nodes, offset = this.pauseTime] = this.pauseTime > 0 ? this.getNodesAfterOffset(audioNodes, this.pauseTime) : [audioNodes];
-
-    playSources(nodes, offset);
-    // this.freq();
-  }
-
   playPause() {
+    this.renderFrequencyAnalyzer();
+
     const progress = () => {
-      const diff = (this.context.currentTime - this.startTime) + this.pauseTime;
+      const diff = (this.input.currentTime);
       this.showElapsedTime(diff);
       const progressWidth = ((diff / this.duration) * this.canvasWidth);
       this.progressContainer.style.width = progressWidth + 'px';
@@ -422,14 +633,16 @@ export class AudioPlayer extends HTMLElement {
     if(this.playing) {
       this.playing = false;
       this.playButtonIcon.innerText = 'play_arrow';
-      this.curSource.stop();
+
+      this.input.pause();
       cancelAnimationFrame(this.timerId);
-      this.pauseTime = (this.context.currentTime - this.startTime) + this.pauseTime;
+      this.pauseTime = (this.input.currentTime);
     }
     else {
       this.playing = true;
       this.playButtonIcon.innerText = 'pause';
-      this.playAudio(this.audioBuffers);
+
+      this.input.play();
       requestAnimationFrame(progress);
     }
   }
@@ -437,10 +650,9 @@ export class AudioPlayer extends HTMLElement {
   stopAudio() {
     this.playing = false;
     this.playButtonIcon.innerText = 'play_arrow';
-    this.curSource.stop();
     cancelAnimationFrame(this.timerId);
 
-    this.pauseTime = 0;
+    this.input.currentTime = 0;
     this.progressContainer.style.width = 0;
     this.showElapsedTime(0);
   }
@@ -467,47 +679,29 @@ export class AudioPlayer extends HTMLElement {
     this.totalTime.innerHTML = this.formatTime(secs);
   }
 
-  freq() {
-    this.analyser.fftSize = 256;
+  renderFrequencyAnalyzer() {
     const bufferLength = this.analyser.frequencyBinCount;
-
     const dataArray = new Float32Array(bufferLength);
-    console.log(dataArray);
+    const barWidth = (this.canvasWidth / bufferLength) * 2.5;
+
     this.frequencyCanvasContext.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     const draw = () => {
-      // requestAnimationFrame(draw);
-      console.log(dataArray);
+      requestAnimationFrame(draw);
       this.analyser.getFloatFrequencyData(dataArray);
-      console.log(dataArray);
       this.frequencyCanvasContext.fillStyle = 'rgb(255, 255, 255)';
       this.frequencyCanvasContext.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-      const barWidth = (this.canvasWidth / bufferLength) * 2.5;
       let x = 0;
 
-      // dataArray.map((_, i) => {
-      //   const barHeight = (dataArray[i] + 140) * 2;
-      //
-      //   this.frequencyCanvasContext.fillStyle = `rgb(${Math.floor(barHeight + 100)},50,50)`;
-      //   this.frequencyCanvasContext.fillRect(x, this.canvasHeight - barHeight / 2, barWidth, barHeight / 2);
-      //
-      //   x += barWidth + 1;
-      // });
+      dataArray.map((_, i) => {
+        const barHeight = (dataArray[i] + 140) * 2;
 
-      // console.log(bufferLength);
-
-      for(var i = 0; i < 10; i++) {
-        let barHeight = (dataArray[i] + 140)*2;
-
-        this.frequencyCanvasContext.fillStyle = '#ff0000'; //'rgb(' + Math.floor(barHeight+100) + ',50,50)';
-        this.frequencyCanvasContext.fillRect(x,this.canvasHeight-barHeight/2,barWidth,barHeight/2);
-
-        // console.log(x, this.canvasHeight - barHeight / 2, barWidth, barHeight / 2);
-        // console.log(dataArray[i], barHeight);
+        this.frequencyCanvasContext.fillStyle = '#ff0000';
+        this.frequencyCanvasContext.fillRect(x, this.canvasHeight - barHeight / 2, barWidth, barHeight / 2);
 
         x += barWidth + 1;
-      }
+      });
     };
 
     draw();
@@ -516,9 +710,9 @@ export class AudioPlayer extends HTMLElement {
   getWaveformData(buffers) {
     const dataArrays = buffers.map(buffer => buffer.getChannelData(0));
     const totalLength = dataArrays.reduce((total, data) => total + data.length, 0);
+    const channelData = new Float32Array(totalLength);
 
     let offset = 0;
-    const channelData = new Float32Array(totalLength);
 
     dataArrays.forEach(data => {
       channelData.set(data, offset);
@@ -528,7 +722,17 @@ export class AudioPlayer extends HTMLElement {
     return channelData;
   }
 
-  renderWaveform(channelData) {
+  async renderWaveform(file) {
+    const buffer = await this.getArrayBuffer(file);
+    const audioBuffers = await this.getAudioBuffers(buffer);
+
+    this.header = buffer.slice(0, 44);
+    this.audioBuffers = audioBuffers;
+    this.duration = audioBuffers.reduce((total, buffer) => total + buffer.duration, 0);
+
+    this.showTotalTime(this.duration);
+
+    const channelData = this.getWaveformData(audioBuffers);
     const drawLines = 2000;
     const totallength = channelData.length;
     const eachBlock = Math.floor(totallength / drawLines);
@@ -561,8 +765,22 @@ export class AudioPlayer extends HTMLElement {
       canvas.context.stroke();
       canvas.context.restore();
     });
+  }
 
-    this.audioReady = true;
+  get view() {
+    return this.getAttribute('view');
+  }
+
+  set view(value) {
+    this.setAttribute('view', value);
+  }
+
+  get state() {
+    return this.getAttribute('state');
+  }
+
+  set state(value) {
+    this.setAttribute('state', value);
   }
 
   clearWaveform() {
@@ -572,3 +790,5 @@ export class AudioPlayer extends HTMLElement {
 }
 
 customElements.define('audio-player', AudioPlayer);
+
+Reppers1942;
