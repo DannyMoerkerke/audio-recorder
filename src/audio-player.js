@@ -30,25 +30,30 @@ export class AudioPlayer extends HTMLElement {
             display: flex;
             flex-direction: row;
           }
+          
+          #controls {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 5px 10px;
+          }
+          
+          #time {
+            display: flex;
+            align-items: center;
+          }
+          
           #container {
             position: relative;
-            /*width: 400px;*/
-            height: 200px;
           }
           
           #waveform-container,
           #frequencies-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+            display: none;
           }
           
-          #waveform-container {
-            display: block;
-          }
           #frequencies-container {
             z-index: 1;
-            display: none;
             border: 1px solid red;
           }
           
@@ -62,7 +67,8 @@ export class AudioPlayer extends HTMLElement {
             pointer-events: none;
           }
           
-          :host([view="waveform"]) #waveform-container {
+          :host([view="waveform"]) #waveform-container,
+          :host([view="waveform"]) #progress-container {
             display: block;
           }
           
@@ -73,13 +79,13 @@ export class AudioPlayer extends HTMLElement {
           }
           
           #progress-container {
+            display: none;
             position: absolute;
             top: 0;
             left: 0;
             overflow: hidden;
             width: 0;
             border-right: 1px solid #0000ff;
-            /*opacity: 0;*/
           }
           
           #equalizer-container {
@@ -112,6 +118,30 @@ export class AudioPlayer extends HTMLElement {
             pointer-events: none;
           }
           
+          #play {
+            opacity: .5;
+            cursor: not-allowed;
+            pointer-events: none;
+          }
+          
+          :host([src]) #play {
+            opacity: 1;
+            cursor: pointer;
+            pointer-events: initial;
+          }
+          
+          #pause {
+            display: none;
+          }
+          
+          :host([state="playing"]) #pause {
+            display: block;
+          }
+          
+          :host([state="playing"]) #play {
+            display: none;
+          }
+          
           :host([state="capturing"]) #stop-capture-audio,
           :host([state="recording"]) #stop-capture-audio {
             display: block;
@@ -139,44 +169,6 @@ export class AudioPlayer extends HTMLElement {
       
       <input type="file" id="file-input">
       
-      <div id="buttons">
-        <material-button id="play" raised>
-          <i class="material-icons" slot="left-icon">play_arrow</i>
-        </material-button>
-  
-        <material-button id="frequencies-button" raised>
-          <i class="material-icons" slot="left-icon">equalizer</i>
-        </material-button>
-        
-        <material-button id="waveform-button" raised>
-          <i class="material-icons" slot="left-icon">graphic_eq</i>
-        </material-button>
-  
-        <material-button id="add-file" raised>
-          <i class="material-icons" slot="left-icon">folder</i>
-        </material-button>
-        
-        <material-button id="capture-audio" raised>
-          <i class="material-icons" slot="left-icon">mic</i>
-        </material-button>
-        
-        <material-button id="stop-capture-audio" raised>
-          <i class="material-icons" slot="left-icon">mic_off</i>
-        </material-button>
-        
-        <material-button id="record-audio" raised>
-          <i class="material-icons" slot="left-icon">fiber_manual_record</i>
-        </material-button>
-        
-        <material-button id="stop-record-audio" raised>
-          <i class="material-icons" slot="left-icon">stop</i>
-        </material-button>
-      </div>
-      
-      <material-slider id="volume" value="100" max="100"></material-slider>
-      
-      <span id="elapsed-time"></span> / <span id="total-time"></span>
-      
       <div id="container">
         <div id="frequencies-container">
           <canvas id="frequencies" width="600" height="200"></canvas>
@@ -189,10 +181,58 @@ export class AudioPlayer extends HTMLElement {
         <div id="progress-container">
           <canvas id="progress" width="600" height="200"></canvas>
         </div>
-        
       </div>
-        <div id="processing-progress"></div>
-        <div id="processing-percentage"></div>
+      
+      <div id="controls">
+        <div id="buttons">
+          <material-button id="play" raised>
+            <i class="material-icons" slot="left-icon">play_arrow</i>
+          </material-button>
+          
+          <material-button id="pause" raised>
+            <i class="material-icons" slot="left-icon">pause</i>
+          </material-button>
+    
+          <material-button id="record-audio" raised>
+            <i class="material-icons" slot="left-icon">fiber_manual_record</i>
+          </material-button>
+          
+          <material-button id="stop-record-audio" raised>
+            <i class="material-icons" slot="left-icon">stop</i>
+          </material-button>
+          
+          <material-button id="capture-audio" raised>
+            <i class="material-icons" slot="left-icon">mic</i>
+          </material-button>
+          
+          <material-button id="stop-capture-audio" raised>
+            <i class="material-icons" slot="left-icon">mic_off</i>
+          </material-button>
+          
+          <material-button id="frequencies-button" raised>
+            <i class="material-icons" slot="left-icon">equalizer</i>
+          </material-button>
+          
+          <material-button id="waveform-button" raised>
+            <i class="material-icons" slot="left-icon">graphic_eq</i>
+          </material-button>
+    
+          <material-button id="add-file" raised>
+            <i class="material-icons" slot="left-icon">folder</i>
+          </material-button>
+          
+          
+        </div>
+        
+        <material-slider id="volume" value="100" max="100"></material-slider>
+      
+        <div id="time">
+          <span id="elapsed-time"></span> / <span id="total-time"></span>
+        </div>
+      </div>
+        
+      <div id="processing-progress"></div>
+      <div id="processing-percentage"></div>
     `;
 
     this.loading = false;
@@ -229,6 +269,7 @@ export class AudioPlayer extends HTMLElement {
     this.processingPercentage = this.shadowRoot.querySelector('#processing-percentage');
     this.fileInput = this.shadowRoot.querySelector('#file-input');
     this.playButton = this.shadowRoot.querySelector('#play');
+    this.pauseButton = this.shadowRoot.querySelector('#pause');
     this.playButtonIcon = this.playButton.querySelector('i');
     this.elapsedTime = this.shadowRoot.querySelector('#elapsed-time');
     this.totalTime = this.shadowRoot.querySelector('#total-time');
@@ -268,6 +309,7 @@ export class AudioPlayer extends HTMLElement {
     this.container.addEventListener('click', this.handleWaveformClick.bind(this));
     this.fileInput.addEventListener('change', e => this.openFile(e.target.files[0]));
     this.playButton.addEventListener('click', this.playPause.bind(this));
+    this.pauseButton.addEventListener('click', this.playPause.bind(this));
     this.volume.addEventListener('change', e => this.setVolume(e.detail.value / 100));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
     this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
@@ -367,7 +409,7 @@ export class AudioPlayer extends HTMLElement {
         return filter;
       }, this.gainNode);
 
-      this.createEqualizerHTML(this.filters);
+      // this.createEqualizerHTML(this.filters);
 
       document.removeEventListener('mousedown', init);
     };
@@ -418,7 +460,7 @@ export class AudioPlayer extends HTMLElement {
     // this.stopCaptureAudio();
     const reader = new FileReader();
 
-    reader.onloadend = e => this.input.src = e.target.result;
+    reader.onloadend = e => this.src = e.target.result;
     reader.readAsDataURL(file);
 
     await this.renderWaveform(file);
@@ -465,12 +507,10 @@ export class AudioPlayer extends HTMLElement {
 
     const processChunk = ({data}) => {
       if(data !== undefined && data.size !== 0) {
-        console.log('chunk');
         chunks.push(data);
 
         const recording = new Blob(chunks, {type: 'audio/mpeg'});
-        // this.renderWaveform(recording);
-        this.loadFile(recording);
+        this.renderWaveform(recording);
       }
     };
 
@@ -630,17 +670,15 @@ export class AudioPlayer extends HTMLElement {
       this.timerId = requestAnimationFrame(progress);
     };
 
-    if(this.playing) {
-      this.playing = false;
-      this.playButtonIcon.innerText = 'play_arrow';
+    if(this.state === 'playing') {
+      this.state = 'idle'
 
       this.input.pause();
       cancelAnimationFrame(this.timerId);
       this.pauseTime = (this.input.currentTime);
     }
     else {
-      this.playing = true;
-      this.playButtonIcon.innerText = 'pause';
+      this.state = 'playing'
 
       this.input.play();
       requestAnimationFrame(progress);
@@ -648,8 +686,7 @@ export class AudioPlayer extends HTMLElement {
   }
 
   stopAudio() {
-    this.playing = false;
-    this.playButtonIcon.innerText = 'play_arrow';
+    this.state = 'idle';
     cancelAnimationFrame(this.timerId);
 
     this.input.currentTime = 0;
@@ -783,6 +820,15 @@ export class AudioPlayer extends HTMLElement {
     this.setAttribute('state', value);
   }
 
+  get src() {
+    return this.getAttribute('src');
+  }
+
+  set src(value) {
+    this.setAttribute('src', value);
+    this.input.src = value;
+  }
+
   clearWaveform() {
     this.canvases.forEach(canvas => canvas.context.clearRect(0, 0, canvas.element.width, canvas.element.height));
   }
@@ -790,5 +836,3 @@ export class AudioPlayer extends HTMLElement {
 }
 
 customElements.define('audio-player', AudioPlayer);
-
-Reppers1942;
