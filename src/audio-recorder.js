@@ -19,7 +19,7 @@ export class AudioRecorder extends HTMLElement {
         :host {
           --width: 600px;
           --height: 300px;
-          --border: 1px solid #cccccc;
+          --border: none;
           --frequency-background-color: #ffffff;
           --frequency-bars-color: #ff0000;
           --waveform-background-color: #ffffff;
@@ -265,14 +265,11 @@ export class AudioRecorder extends HTMLElement {
             </material-button>
           </div>
         
-          <div id="time">
+          <div id="time" part="time">
             <span id="elapsed-time"></span> / <span id="total-time"></span>
           </div>
         </div>
       </div>
-        
-      <div id="processing-progress"></div>
-      <div id="processing-percentage"></div>
     `;
 
     this.hours = 0;
@@ -283,7 +280,7 @@ export class AudioRecorder extends HTMLElement {
     this.audioBuffers = [];
     this.frequencies = false;
     this.state = 'idle';
-    this.view = 'frequencies';
+    this.view = this.getAttribute('view') || 'frequencies';
     this.bars = parseInt(this.getAttribute('bars') || 20, 10)
 
     this.mediaElementSource = null;
