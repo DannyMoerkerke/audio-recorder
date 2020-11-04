@@ -4,7 +4,7 @@
   "description": "Audio Recorder Web Component",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/dannymoerkerke/audio-player.git"
+    "url": "git+ssh://git@github.com:DannyMoerkerke/audio-recorder.git"
   },
   "publishConfig": {
     "access": "public"
@@ -15,7 +15,7 @@
   ],
   "author": "Danny Moerkerke <danny@dannymoerkerke.nl>",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/dannymoerkerke/audio-recorder#readme",
+  "homepage": "https://github.com/DannyMoerkerke/audio-recorder#readme",
   "scripts": {
     "start": "ws -p 8080 --spa demo/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
