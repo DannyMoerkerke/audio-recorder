@@ -6,15 +6,29 @@
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-      audio-player {
+      audio-recorder {
         width: 600px;
+        /*--frequency-background-color: yellow;*/
+        /*--frequency-bars-color: green;*/
+        /*--waveform-color: blue;*/
+        /*--waveform-progress-color: orange;*/
+        --waveform-background-color: #cccccc;
+      }
+
+      audio-recorder::part(slider) {
+        --track-color: #000000;
+        --thumb-color: #000000;
+      }
+
+      audio-recorder::part(button) {
+        /*--button-color: green;*/
       }
     </style>
   </head>
   <body>
-    <h1>audio player</h1>
-    <audio-player></audio-player>
+    <h1>audio recorder</h1>
+    <audio-recorder bars="40"></audio-recorder>
 
-    <script type="module" src="../src/audio-player.js"></script>
+    <script type="module" src="../src/audio-recorder.js"></script>
   </body>
 </html>

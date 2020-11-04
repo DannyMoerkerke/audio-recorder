@@ -1,7 +1,7 @@
 {
-  "name": "audio-player",
+  "name": "audio-recorder",
   "version": "1.0.0",
-  "description": "Custom Element audio player",
+  "description": "Audio Recorder Web Component",
   "main": "index.js",
   "scripts": {
     "start": "ws -p 8080 --spa demo/index.html",
@@ -13,11 +13,11 @@
   },
   "author": "Danny Moerkerke <danny@dannymoerkerke.nl>",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/dannymoerkerke/audio-player#readme",
+  "homepage": "https://bitbucket.org/dannymoerkerke/audio-recorder#readme",
   "devDependencies": {
     "local-web-server": "^2.6.1"
   },
   "dependencies": {
-    "@dannymoerkerke/material-webcomponents": "^1.2.10"
+    "@dannymoerkerke/material-webcomponents": "^1.2.11"
   }
 }
