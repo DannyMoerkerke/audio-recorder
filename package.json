@@ -1,5 +1,5 @@
 {
-  "name": "audio-recorder",
+  "name": "@dannymoerkerke/audio-recorder",
   "version": "1.0.0",
   "description": "Audio Recorder Web Component",
   "repository": {
