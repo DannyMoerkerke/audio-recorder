@@ -134,12 +134,6 @@ export class AudioRecorder extends HTMLElement {
           border-right-color: var(--waveform-progress-color);
         }
         
-        #equalizer-container {
-          width: 200px;
-          margin-left: 35px;
-          transform: rotate(-90deg);
-        }
-      
         audio {
           display: none;
         }
@@ -425,88 +419,6 @@ export class AudioRecorder extends HTMLElement {
       this.analyser = this.context.createAnalyser();
       this.analyser.fftSize = 256;
 
-      const filters = [
-        {
-          type: 'lowshelf',
-          frequency: 63.0,
-        },
-        {
-          type: 'peaking',
-          frequency: 125.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 250.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 400.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 630.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 1000.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 1600.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 2500.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 4000.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 6300.0,
-          q: 0.5
-        },
-        {
-          type: 'peaking',
-          frequency: 10000.0,
-          q: 0.5
-        },
-        {
-          type: 'highshelf',
-          frequency: 15000.0
-        }
-      ];
-
-      this.filters = filters.map(({type, frequency, q}) => {
-        const filter = this.context.createBiquadFilter();
-        filter.type = type;
-        filter.frequency.value = frequency;
-
-        if(q) {
-          filter.Q.value = q;
-        }
-
-        filter.gain.value = 0.0;
-
-        return filter;
-      });
-
-      this.equalizer = this.filters.reduce((destination, filter) => {
-        destination.connect(filter);
-        return filter;
-      }, this.gainNode);
-
-      // this.createEqualizerHTML(this.filters);
-
       document.removeEventListener('mousedown', init);
     };
 
@@ -519,7 +431,6 @@ export class AudioRecorder extends HTMLElement {
 
       this.mediaElementSource.connect(this.analyser);
       this.mediaElementSource.connect(this.gainNode);
-      this.equalizer.connect(this.output);
     }
 
     return this.mediaElementSource;
@@ -531,7 +442,6 @@ export class AudioRecorder extends HTMLElement {
 
       this.mediaStreamSource.connect(this.analyser);
       this.mediaStreamSource.connect(this.gainNode);
-      this.equalizer.connect(this.output);
     }
 
     return this.mediaStreamSource;
@@ -542,7 +452,6 @@ export class AudioRecorder extends HTMLElement {
 
     this.curSource.connect(this.analyser);
     this.curSource.connect(this.gainNode);
-    this.equalizer.connect(this.output);
   }
 
   async openFile(file) {
@@ -619,28 +528,6 @@ export class AudioRecorder extends HTMLElement {
 
   showWaveform() {
     this.view = 'waveform';
-  }
-
-  createEqualizerHTML(filters) {
-    const fragment = document.createDocumentFragment();
-    const div = document.createElement('div');
-    div.id = 'equalizer-container';
-    const eqContainer = fragment.appendChild(div);
-
-    filters.forEach((filter, i) => {
-      const html = `<material-slider min="-15" max="15" value="0" data-filter="${i}"></material-slider>`;
-      eqContainer.insertAdjacentHTML('beforeend', html);
-      const slider = eqContainer.lastChild;
-
-      slider.addEventListener('change', (e) => {
-        const gain = e.detail.value;
-        const index = slider.dataset.filter;
-        filters[index].gain.setValueAtTime(gain, this.context.currentTime);
-      });
-
-    });
-
-    this.audioContainer.after(fragment);
   }
 
   setVolume(value) {
