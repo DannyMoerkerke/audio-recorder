@@ -17,7 +17,7 @@ export class AudioRecorder extends HTMLElement {
       
       <style>
         :host {
-          --width: 600px;
+          --width: 210px;
           --height: 300px;
           --border: none;
           --frequency-background-color: #ffffff;
@@ -25,16 +25,17 @@ export class AudioRecorder extends HTMLElement {
           --waveform-background-color: #ffffff;
           --waveform-color: #ff0000;
           --waveform-progress-color: #337ab7;
-          display: block;
-          min-width: 210px;
+          display: inline-flex;
+          flex-direction: column;
           border: var(--border);
           box-sizing: content-box;
+          min-width: 210px;
           width: var(--width);
-          height: var(--height);
+          min-height: var(--height);
         }
         
         canvas {
-          box-sizing: border-box;
+          display: block;
         }
         
         material-slider {
@@ -59,11 +60,13 @@ export class AudioRecorder extends HTMLElement {
           justify-content: space-between;
           align-items: center;
           padding: 5px 10px 5px 5px;
+          max-width: 800px;
         }
         
         #time {
           display: flex;
           align-items: center;
+          padding: 5px;
         }
         
         #volume-container {
@@ -76,6 +79,7 @@ export class AudioRecorder extends HTMLElement {
           height: 100%;
           display: flex;
           flex-direction: column;
+          flex-grow: 1;
         }
         
         #audio-container {
@@ -125,7 +129,9 @@ export class AudioRecorder extends HTMLElement {
           left: 0;
           overflow: hidden;
           width: 0;
-          border-right: 1px solid #0000ff;
+          border-right-width: 1px;
+          border-right-style: solid;
+          border-right-color: var(--waveform-progress-color);
         }
         
         #equalizer-container {
@@ -281,7 +287,7 @@ export class AudioRecorder extends HTMLElement {
     this.frequencies = false;
     this.state = 'idle';
     this.view = this.getAttribute('view') || 'frequencies';
-    this.bars = parseInt(this.getAttribute('bars') || 20, 10)
+    this.bars = parseInt(this.getAttribute('bars') || 20, 10);
 
     this.mediaElementSource = null;
     this.mediaStreamSource = null;
@@ -314,6 +320,23 @@ export class AudioRecorder extends HTMLElement {
     this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
   }
 
+  resizeCanvas({width, height}) {
+    this.canvas.width = 0;
+    this.canvas.height = 0;
+
+    this.canvas.width = width;
+    this.canvas.height = height;
+
+    this.progressCanvas.width = width;
+    this.progressCanvas.height = height;
+
+    this.frequencyCanvas.width = width;
+    this.frequencyCanvas.height = height;
+
+    this.canvasWidth = this.canvas.width;
+    this.canvasHeight = this.canvas.height;
+  }
+
   connectedCallback() {
     const hostStyle = getComputedStyle(this.shadowRoot.host);
     const waveformBackgroundColor = hostStyle.getPropertyValue('--waveform-background-color');
@@ -338,18 +361,38 @@ export class AudioRecorder extends HTMLElement {
     this.frequenciesBackgroundColor = hostStyle.getPropertyValue('--frequency-background-color');
     this.frequenciesBarsColor = hostStyle.getPropertyValue('--frequency-bars-color');
 
-    const {width, height} = this.audioContainer.getBoundingClientRect();
-    this.canvas.width = width;
-    this.canvas.height = height;
+    setTimeout(() => {
+      const {width, height} = this.audioContainer.getBoundingClientRect();
+      this.resizeCanvas({width, height});
 
-    this.progressCanvas.width = width;
-    this.progressCanvas.height = height;
+      if('ResizeObserver' in window) {
+        let observerStarted = true;
 
-    this.frequencyCanvas.width = width;
-    this.frequencyCanvas.height = height;
+        const observer = new ResizeObserver(entries => {
+          if(observerStarted) {
+            observerStarted = false;
+            return;
+          }
 
-    this.canvasWidth = this.canvas.width;
-    this.canvasHeight = this.canvas.height;
+          entries.forEach(({contentRect}) => {
+            this.resizeCanvas(contentRect);
+
+            if(this.view === 'waveform' && this.recording) {
+              this.renderWaveform(this.recording);
+            }
+            if(this.view === 'frequencies' && this.analyser) {
+              cancelAnimationFrame(this.frequencyAnimation);
+              this.renderFrequencyAnalyzer();
+            }
+
+            observerStarted = true;
+            observer.observe(this.audioContainer);
+          });
+        });
+
+        observer.observe(this.audioContainer);
+      }
+    });
 
     this.showTotalTime(0);
     this.showElapsedTime(0);
@@ -547,10 +590,10 @@ export class AudioRecorder extends HTMLElement {
     this.state = 'recording';
 
     const handleStopRecording = async () => {
-      const recording = new Blob(chunks, {type: 'audio/mpeg'});
+      this.recording = new Blob(chunks, {type: 'audio/mpeg'});
 
       this.stopCaptureAudio();
-      await this.loadFile(recording);
+      await this.loadFile(this.recording);
     };
 
     const processChunk = ({data}) => {
@@ -707,14 +750,14 @@ export class AudioRecorder extends HTMLElement {
     };
 
     if(this.state === 'playing') {
-      this.state = 'idle'
+      this.state = 'idle';
 
       this.input.pause();
       cancelAnimationFrame(this.timerId);
       this.pauseTime = (this.input.currentTime);
     }
     else {
-      this.state = 'playing'
+      this.state = 'playing';
 
       this.input.play();
       requestAnimationFrame(progress);
@@ -760,9 +803,9 @@ export class AudioRecorder extends HTMLElement {
     this.frequencyCanvasContext.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
     const draw = () => {
-      requestAnimationFrame(draw);
+      this.frequencyAnimation = requestAnimationFrame(draw);
       this.analyser.getFloatFrequencyData(dataArray);
-      this.frequencyCanvasContext.fillStyle = this.frequenciesBackgroundColor
+      this.frequencyCanvasContext.fillStyle = this.frequenciesBackgroundColor;
       this.frequencyCanvasContext.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
 
       let x = 0;
