@@ -12,19 +12,19 @@ npm i @dannymoerkerke/audio-recorder
 ## Usage
 Add a `<script>` tag to your page:
 
-```
+```css
 <script type="module" src="path/to/node_modules/@dannymoerkerke/src/audio-recorder.js"></script>
 ```
 
 or import it:
 
-```
+```javascript
 import './path/to/node_modules/@dannymoerkerke/src/audio-recorder.js';
 ```
 
 and add the tag to your page:
 
-```
+```html
 <audio-recorder></audio-recorder>
 ```
 
@@ -46,7 +46,7 @@ In addition, mixins can be applied using the `::part` pseudo element.
 
 Usage: 
 
-```
+```css
 audio-recorder::part([selector]) {
 
    /** css rules **/
@@ -71,7 +71,7 @@ For example, the `material-slider` component exposes the properties `--track-siz
 
 These can be used in combination with `::part` to style the volume slider:
 
-```
+```css
 audio-recorder::part(slider) {
   --track-color: #000000;
   --track-size: 3px;
