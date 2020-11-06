@@ -154,16 +154,28 @@ export class AudioRecorder extends HTMLElement {
           pointer-events: none;
         }
         
-        #play {
+        #play,
+        #save-audio {
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
         }
         
-        :host([src]) #play {
+        :host([src]) #play,
+        :host([src]) #save-audio {
           opacity: 1;
           cursor: pointer;
           pointer-events: initial;
+        }
+        
+        #save-audio a {
+          color: #000000;
+          text-decoration: none;
+        }
+        #save-audio a i {
+          display: block;
+          width: 100%;
+          height: 100%;
         }
         
         #pause {
@@ -244,6 +256,12 @@ export class AudioRecorder extends HTMLElement {
               <i class="material-icons" slot="left-icon">stop</i>
             </material-button>
             
+            <material-button id="save-audio" raised part="button">
+              <a id="save-audio-link" slot="left-icon" target="_blank">
+                <i class="material-icons">save</i>
+              </a>
+            </material-button>
+            
             <material-button id="frequencies-button" raised part="button">
               <i class="material-icons" slot="left-icon">equalizer</i>
             </material-button>
@@ -312,6 +330,15 @@ export class AudioRecorder extends HTMLElement {
     this.stopCaptureAudioButton = this.shadowRoot.querySelector('#stop-capture-audio');
     this.recordAudioButton = this.shadowRoot.querySelector('#record-audio');
     this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
+    this.saveAudioLink = this.shadowRoot.querySelector('#save-audio-link');
+
+    // if('showSaveFilePicker' in window) {
+    //   this.saveAudioLink.addEventListener('click', e => {
+    //     console.log('click');
+    //     // e.preventDefault();
+    //     window.showSaveFilePicker();
+    //   });
+    // }
   }
 
   resizeCanvas({width, height}) {
@@ -413,7 +440,9 @@ export class AudioRecorder extends HTMLElement {
     });
 
     const init = () => {
-      this.context = new AudioContext();
+      // const audioContext = 'AudioContext' in window ? AudioContext : webkitAudioContext;
+      this.isWebKit = 'webkitAudioContext' in window;
+      this.context = new (window.AudioContext || window.webkitAudioContext)();
       this.output = this.context.destination;
       this.gainNode = this.context.createGain();
       this.analyser = this.context.createAnalyser();
@@ -462,7 +491,12 @@ export class AudioRecorder extends HTMLElement {
   async loadFile(file) {
     const reader = new FileReader();
 
-    reader.onloadend = e => this.src = e.target.result;
+    reader.onloadend = e => {
+      this.src = e.target.result;
+      this.saveAudioLink.download = 'isTypeSupported' in MediaRecorder ? 'capture.webm' : 'capture.mp3';
+      this.saveAudioLink.href = e.target.result;
+    };
+
     reader.readAsDataURL(file);
 
     await this.renderWaveform(file);
@@ -485,6 +519,10 @@ export class AudioRecorder extends HTMLElement {
     if(this.stream) {
       this.stream.getTracks().map(track => track.stop());
       this.mediaStreamSource = null;
+
+      cancelAnimationFrame(this.frequencyAnimation);
+      this.clearFrequenciesDisplay();
+
       this.state = 'idle';
     }
   }
@@ -494,12 +532,14 @@ export class AudioRecorder extends HTMLElement {
 
     this.recorder = new MediaRecorder(this.stream);
 
+    const options = 'isTypeSupported' in MediaRecorder ? {type: 'audio/webm'} : {type: 'audio/mpeg'};
+
     this.recorder.start(250);
 
     this.state = 'recording';
 
     const handleStopRecording = async () => {
-      this.recording = new Blob(chunks, {type: 'audio/mpeg'});
+      this.recording = new Blob(chunks, options);
 
       this.stopCaptureAudio();
       await this.loadFile(this.recording);
@@ -509,8 +549,10 @@ export class AudioRecorder extends HTMLElement {
       if(data !== undefined && data.size !== 0) {
         chunks.push(data);
 
-        const recording = new Blob(chunks, {type: 'audio/mpeg'});
-        this.renderWaveform(recording);
+        if(!this.isWebKit) {
+          const recording = new Blob(chunks, options);
+          this.renderWaveform(recording);
+        }
       }
     };
 
@@ -572,9 +614,14 @@ export class AudioRecorder extends HTMLElement {
       reader.onloadend = e => {
         const buffer = e.target.result;
 
-        this.context.decodeAudioData(buffer)
-        .then(decodedBuffer => resolve(decodedBuffer))
-        .catch((err) => reject(err));
+        if(this.isWebKit) {
+          this.context.decodeAudioData(buffer, decodedBuffer => resolve(decodedBuffer), (err) => reject(err));
+        }
+        else {
+          this.context.decodeAudioData(buffer)
+          .then(decodedBuffer => resolve(decodedBuffer))
+          .catch((err) => reject(err));
+        }
       };
     });
   }
@@ -631,7 +678,7 @@ export class AudioRecorder extends HTMLElement {
       const diff = (this.input.currentTime);
       this.showElapsedTime(diff);
       const progressWidth = ((diff / this.duration) * this.canvasWidth);
-      this.progressContainer.style.width = progressWidth + 'px';
+      this.progressContainer.style.width = `${progressWidth}px`;
 
       this.timerId = requestAnimationFrame(progress);
     };
@@ -798,6 +845,9 @@ export class AudioRecorder extends HTMLElement {
     this.canvases.forEach(canvas => canvas.context.clearRect(0, 0, canvas.element.width, canvas.element.height));
   }
 
+  clearFrequenciesDisplay() {
+    this.frequencyCanvasContext.clearRect(0, 0, this.frequencyCanvas.width, this.frequencyCanvas.height);
+  }
 }
 
 customElements.define('audio-recorder', AudioRecorder);
