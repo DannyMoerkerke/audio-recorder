@@ -440,7 +440,6 @@ export class AudioRecorder extends HTMLElement {
     });
 
     const init = () => {
-      // const audioContext = 'AudioContext' in window ? AudioContext : webkitAudioContext;
       this.isWebKit = 'webkitAudioContext' in window;
       this.context = new (window.AudioContext || window.webkitAudioContext)();
       this.output = this.context.destination;
@@ -549,10 +548,8 @@ export class AudioRecorder extends HTMLElement {
       if(data !== undefined && data.size !== 0) {
         chunks.push(data);
 
-        if(!this.isWebKit) {
-          const recording = new Blob(chunks, options);
-          this.renderWaveform(recording);
-        }
+        const recording = new Blob(chunks, options);
+        this.renderWaveform(recording);
       }
     };
 
@@ -605,7 +602,7 @@ export class AudioRecorder extends HTMLElement {
 
   sliceAudio(buffer, start, end) {
     const chunk = start + end === buffer.byteLength ? buffer : buffer.slice(start, end);
-    const blob = new Blob([new Uint8Array(this.header), new Uint8Array(chunk)]);
+    const blob = new Blob([new Uint8Array(chunk)]);
     const reader = new FileReader();
 
     reader.readAsArrayBuffer(blob);
@@ -776,7 +773,6 @@ export class AudioRecorder extends HTMLElement {
     const buffer = await this.getArrayBuffer(file);
     const audioBuffers = await this.getAudioBuffers(buffer);
 
-    this.header = buffer.slice(0, 44);
     this.audioBuffers = audioBuffers;
     this.duration = audioBuffers.reduce((total, buffer) => total + buffer.duration, 0);
 
@@ -786,7 +782,7 @@ export class AudioRecorder extends HTMLElement {
     const drawLines = 2000;
     const totallength = channelData.length;
     const eachBlock = Math.floor(totallength / drawLines);
-    const lineGap = (this.canvasWidth / drawLines);
+    const lineGap = this.canvasWidth / drawLines;
 
     this.canvases.forEach(canvas => {
       canvas.context.save();
