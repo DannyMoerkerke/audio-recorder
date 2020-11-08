@@ -485,6 +485,7 @@ export class AudioRecorder extends HTMLElement {
 
     this.curSource.connect(this.analyser);
     this.curSource.connect(this.gainNode);
+    this.gainNode.connect(this.output);
   }
 
   async openFile(file) {
