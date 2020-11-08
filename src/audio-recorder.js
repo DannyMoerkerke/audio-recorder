@@ -309,6 +309,7 @@ export class AudioRecorder extends HTMLElement {
     this.mediaElementSource = null;
     this.mediaStreamSource = null;
 
+    this.nativeFileSystemSupported = 'showSaveFilePicker' in window;
     this.maxChunkLength = 524000; //1024000 * 50;
     this.canvas = this.shadowRoot.querySelector('#waveform');
     this.canvasContext = this.canvas.getContext('2d');
@@ -337,13 +338,9 @@ export class AudioRecorder extends HTMLElement {
     this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
     this.saveAudioLink = this.shadowRoot.querySelector('#save-audio-link');
 
-    // if('showSaveFilePicker' in window) {
-    //   this.saveAudioLink.addEventListener('click', e => {
-    //     console.log('click');
-    //     // e.preventDefault();
-    //     window.showSaveFilePicker();
-    //   });
-    // }
+    if(this.nativeFileSystemSupported) {
+      this.saveAudioLink.addEventListener('click', async () => this.saveFile(this.recording));
+    }
   }
 
   resizeCanvas({width, height}) {
@@ -498,8 +495,11 @@ export class AudioRecorder extends HTMLElement {
 
     reader.onloadend = e => {
       this.src = e.target.result;
-      this.saveAudioLink.download = 'isTypeSupported' in MediaRecorder ? 'capture.webm' : 'capture.mp3';
-      this.saveAudioLink.href = e.target.result;
+
+      if(!this.nativeFileSystemSupported) {
+        this.saveAudioLink.download = 'isTypeSupported' in MediaRecorder ? 'capture.webm' : 'capture.mp3';
+        this.saveAudioLink.href = e.target.result;
+      }
     };
 
     reader.readAsDataURL(file);
@@ -508,6 +508,24 @@ export class AudioRecorder extends HTMLElement {
     await this.initializeAudio(this.input);
 
     this.view = 'waveform';
+  }
+
+  async saveFile(file) {
+    const ext = `.${file.type.split('/').pop()}`;
+    const handle = await window.showSaveFilePicker({
+      types: [
+        {
+          description: 'Audio file',
+          accept: {
+            [file.type]: ext
+          }
+        }
+      ]
+    });
+
+    const writable = await handle.createWritable();
+    await writable.write({type: 'write', data: file});
+    await writable.close();
   }
 
   async captureAudio() {
