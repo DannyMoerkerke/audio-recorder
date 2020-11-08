@@ -85,6 +85,11 @@ export class AudioRecorder extends HTMLElement {
         #audio-container {
           position: relative;
           flex-grow: 1;
+          pointer-events: none;
+        }
+        
+        :host([src]) #audio-container {
+          pointer-events: initial;
         }
         
         #waveform-container,
