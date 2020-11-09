@@ -1,6 +1,6 @@
 {
   "name": "@dannymoerkerke/audio-recorder",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Audio Recorder Web Component",
   "repository": {
     "type": "git",
@@ -24,6 +24,6 @@
     "local-web-server": "^2.6.1"
   },
   "dependencies": {
-    "@dannymoerkerke/material-webcomponents": "^1.2.12"
+    "@dannymoerkerke/material-webcomponents": "^1.2.14"
   }
 }

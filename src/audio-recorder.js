@@ -529,13 +529,26 @@ export class AudioRecorder extends HTMLElement {
   }
 
   async captureAudio() {
-    this.stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({audio: true});
 
-    await this.initializeAudio(this.stream);
+      this.currentVolume = this.volume.value;
+      this.volume.disabled = true;
+      this.setVolume(0);
 
-    this.renderFrequencyAnalyzer();
-    this.view = 'frequencies';
-    this.state = 'capturing';
+      await this.initializeAudio(this.stream);
+
+      this.renderFrequencyAnalyzer();
+      this.view = 'frequencies';
+      this.state = 'capturing';
+    }
+    catch(e) {
+      if(e.name === 'NotAllowedError') {
+        this.dispatchEvent(new CustomEvent('notallowed', {
+          detail: {message: `Access to the device's microphone is not allowed`}
+        }));
+      }
+    }
   }
 
   stopCaptureAudio() {
@@ -547,6 +560,9 @@ export class AudioRecorder extends HTMLElement {
       this.clearFrequenciesDisplay();
 
       this.state = 'idle';
+
+      this.setVolume(this.currentVolume);
+      this.volume.disabled = false;
     }
   }
 
@@ -725,7 +741,7 @@ export class AudioRecorder extends HTMLElement {
   stopAudio() {
     this.state = 'idle';
     this.clearFrequenciesDisplay();
-    
+
     cancelAnimationFrame(this.timerId);
     cancelAnimationFrame(this.frequencyAnimation);
 
