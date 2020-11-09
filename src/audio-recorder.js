@@ -693,7 +693,6 @@ export class AudioRecorder extends HTMLElement {
   }
 
   playPause() {
-    this.renderFrequencyAnalyzer();
 
     const progress = () => {
       const diff = (this.input.currentTime);
@@ -708,20 +707,27 @@ export class AudioRecorder extends HTMLElement {
       this.state = 'idle';
 
       this.input.pause();
+      this.pauseTime = this.input.currentTime;
+      this.clearFrequenciesDisplay();
+
       cancelAnimationFrame(this.timerId);
-      this.pauseTime = (this.input.currentTime);
+      cancelAnimationFrame(this.frequencyAnimation);
     }
     else {
       this.state = 'playing';
-
       this.input.play();
+
+      this.renderFrequencyAnalyzer();
       requestAnimationFrame(progress);
     }
   }
 
   stopAudio() {
     this.state = 'idle';
+    this.clearFrequenciesDisplay();
+    
     cancelAnimationFrame(this.timerId);
+    cancelAnimationFrame(this.frequencyAnimation);
 
     this.input.currentTime = 0;
     this.progressContainer.style.width = 0;
