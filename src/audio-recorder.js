@@ -281,7 +281,7 @@ export class AudioRecorder extends HTMLElement {
               <i class="material-icons" slot="left-icon">volume_off</i>
             </material-button>
             
-            <material-slider id="volume" value="100" max="100" part="slider"></material-slider>
+            <material-slider id="volume" value="1" min="0" max="1" step="0.01" part="slider"></material-slider>
             
             <material-button id="volume-max" circle part="volume-button">
               <i class="material-icons" slot="left-icon">volume_up</i>
@@ -423,7 +423,7 @@ export class AudioRecorder extends HTMLElement {
     this.audioContainer.addEventListener('click', this.handleWaveformClick.bind(this));
     this.playButton.addEventListener('click', this.playPause.bind(this));
     this.pauseButton.addEventListener('click', this.playPause.bind(this));
-    this.volume.addEventListener('change', e => this.setVolume(e.detail.value / 100));
+    this.volume.addEventListener('change', e => this.setVolume(e.detail.value));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
     this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
     this.waveformButton.addEventListener('click', this.showWaveform.bind(this));
@@ -437,8 +437,8 @@ export class AudioRecorder extends HTMLElement {
     });
 
     this.volumeMaxButton.addEventListener('click', e => {
-      this.setVolume(100);
-      this.volume.value = 100;
+      this.setVolume(1);
+      this.volume.value = 1;
     });
 
     const init = () => {
@@ -533,8 +533,8 @@ export class AudioRecorder extends HTMLElement {
       this.stream = await navigator.mediaDevices.getUserMedia({audio: true});
 
       this.currentVolume = this.volume.value;
-      this.volume.disabled = true;
       this.setVolume(0);
+      this.volume.disabled = true;
 
       await this.initializeAudio(this.stream);
 
@@ -561,8 +561,8 @@ export class AudioRecorder extends HTMLElement {
 
       this.state = 'idle';
 
-      this.setVolume(this.currentVolume);
       this.volume.disabled = false;
+      this.setVolume(this.currentVolume);
     }
   }
 
