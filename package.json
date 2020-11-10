@@ -17,13 +17,17 @@
   "license": "MIT",
   "homepage": "https://dannymoerkerke.github.io/audio-recorder/",
   "scripts": {
-    "start": "ws -p 8080 --spa index.html",
-    "predeploy": "npm i",
-    "deploy": "gh-pages -d build"
+    "start": "ws -p 8080 --spa  index.html",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d ./",
+    "build": "rm -rf dist && webpack"
   },
   "devDependencies": {
     "gh-pages": "^3.1.0",
-    "local-web-server": "^2.6.1"
+    "html-webpack-plugin": "^4.5.0",
+    "local-web-server": "^2.6.1",
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0"
   },
   "dependencies": {
     "@dannymoerkerke/material-webcomponents": "^1.2.14"
