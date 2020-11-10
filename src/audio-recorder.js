@@ -160,7 +160,9 @@ export class AudioRecorder extends HTMLElement {
         }
         
         #play,
-        #save-audio {
+        #save-audio,
+        :host([src][state="capturing"]) #play,
+        :host([src][state="capturing"]) #save-audio {
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
@@ -193,6 +195,12 @@ export class AudioRecorder extends HTMLElement {
         
         :host([state="playing"]) #play {
           display: none;
+        }
+        
+        :host([state="playing"]) #capture-audio {
+          opacity: .5;
+          cursor: not-allowed;
+          pointer-events: none;
         }
         
         :host([state="capturing"]) #stop-capture-audio,
@@ -506,7 +514,8 @@ export class AudioRecorder extends HTMLElement {
 
     await this.renderWaveform(file);
     await this.initializeAudio(this.input);
-
+    this.progressContainer.style.width = 0;
+    
     this.view = 'waveform';
   }
 
