@@ -1,6 +1,6 @@
 {
   "name": "@dannymoerkerke/audio-recorder",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Audio Recorder Web Component",
   "repository": {
     "type": "git",
@@ -15,17 +15,17 @@
   ],
   "author": "Danny Moerkerke <danny@dannymoerkerke.nl>",
   "license": "MIT",
-  "homepage": "https://github.com/DannyMoerkerke/audio-recorder#readme",
+  "homepage": "https://dannymoerkerke.github.io/audio-recorder/",
   "scripts": {
-    "start": "ws -p 8080 --spa index.html"
+    "start": "ws -p 8080 --spa index.html",
+    "predeploy": "npm i",
+    "deploy": "gh-pages -d build"
   },
   "devDependencies": {
+    "gh-pages": "^3.1.0",
     "local-web-server": "^2.6.1"
   },
   "dependencies": {
     "@dannymoerkerke/material-webcomponents": "^1.2.14"
   }
 }
-
-
-
