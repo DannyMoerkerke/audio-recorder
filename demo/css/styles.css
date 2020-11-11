@@ -1,0 +1,183 @@
+html, body {
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  font-family: Verdana;
+}
+
+main {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+header, footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  background-color: #337ab7;
+  padding: 10px;
+  color: #ffffff;
+}
+
+
+/*@media screen and (min-width: 1024px) {*/
+/*  header, footer {*/
+/*    justify-content: center;*/
+/*  }*/
+/*}*/
+#content {
+  flex-grow: 1;
+  background-color: #ffffff;
+  padding: 10px;
+  width: 85%;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  width: 87%;
+  /*justify-content: space-between;*/
+  font-size: 3.5em;
+}
+.logo i {
+  font-size: 2.5em;
+  margin-right: 20px;
+}
+#github {
+  display: flex;
+  margin-left: auto;
+}
+@media screen and (min-width: 1024px) {
+  #content {
+    width: 70%;
+  }
+  .logo {
+    width: 72%;
+  }
+}
+nav {
+  display: flex;
+  justify-content: space-between;
+  width: 85%;
+  position: relative;
+}
+
+@media screen and (min-width: 1024px) {
+  nav {
+    display: block;
+    width: 70%;
+  }
+}
+nav ul {
+  display: none;
+  list-style-type: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+}
+
+@media screen and (min-width: 1024px) {
+  nav ul {
+    display: flex;
+    position: static;
+    align-items: center;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+}
+nav li {
+  display: block;
+  padding: 5px;
+  background-color: #ffffff;
+}
+@media screen and (min-width: 1024px) {
+  nav li {
+    padding: 0;
+    background-color: transparent;
+  }
+}
+nav a,
+nav a:visited {
+  color: #000000;
+  display: inline-block;
+  text-decoration: none;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: transparent;
+}
+@media screen and (min-width: 1024px) {
+  nav a,
+  nav a:visited {
+    color: #ffffff;
+  }
+}
+h1 {
+  font-weight: normal;
+  font-size: 3em;
+}
+
+h3 {
+  font-weight: normal;
+  font-size: 2em;
+}
+p {
+  font-size: 0.9rem;
+  line-height: 1.8rem;
+}
+pre {
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  background-color: #e5e5e5;
+  display: inline-block;
+  padding: 20px;
+}
+
+code {
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+audio-recorder {
+  width: 100%;
+  --border: 1px solid #cccccc;
+  --waveform-background-color: #cccccc;
+}
+
+@media screen and (min-width: 1024px) {
+  audio-recorder {
+    width: 600px;
+  }
+}
+
+audio-recorder::part(slider) {
+  --track-color: #000000;
+  --thumb-color: #000000;
+  width: 100%;
+}
+
+#record-audio {
+  --font-color: #ff0000;
+}
+
+.usage {
+  padding: 0;
+}
+
+.usage li {
+  list-style-type: none;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+}
+
+.usage li material-button {
+  margin-right: 10px;
+  pointer-events: none;
+}
+

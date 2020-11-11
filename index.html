@@ -1,29 +1,22 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Title</title><link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"><style>audio-recorder {
-        width: 600px;
-        --border: 1px solid #cccccc;
-        --waveform-background-color: #cccccc;
-      }
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>audio-recorder</title><link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"><link href="demo/css/styles.css" rel="stylesheet"></head><body><header><section class="logo"><i class="material-icons" slot="left-icon">equalizer</i> &lt;audio-recorder&gt; <a href="https://github.com/DannyMoerkerke/audio-recorder" target="_blank" rel="noopener" id="github"><img src="demo/img/github.svg"/></a></section></header><main><section id="content"><h1>audio recorder</h1><p>An audio recorder Web Component that records audio through the microphone of the user's device.</p><p>It provides a graphic frequency analyzer and waveform view of the recorded audio and uses the MediaDevices API, Web Audio API and the MediaRecorder API.</p><h3>Demo</h3><audio-recorder bars="40"></audio-recorder><p>To run the demo locally , run <code>npm install</code> once and then <code>npm start</code> and view the demo on <a href="http://localhost:8080/">http://localhost:8080/</a></p><section><h3>Usage</h3><ul class="usage"><li><material-button id="capture-audio" raised><i class="material-icons" slot="left-icon">mic</i></material-button>Start capturing microphone</li><li><material-button id="play" raised><i class="material-icons" slot="left-icon">play_arrow</i></material-button>Play the recorded audio</li><li><material-button id="record-audio" raised><i class="material-icons" slot="left-icon">fiber_manual_record</i></material-button>Start recording audio</li><li><material-button id="save-audio" raised><i class="material-icons" slot="left-icon">save</i></material-button>Save recorded audio</li><li><material-button id="frequencies-button" raised><i class="material-icons" slot="left-icon">equalizer</i></material-button>Show frequency analyzer</li><li><material-button id="waveform-button" raised><i class="material-icons" slot="left-icon">graphic_eq</i></material-button>Show recorded audio as waveform</li></ul></section><h3>Installation</h3><pre>npm i @dannymoerkerke/audio-recorder</pre><h3>Usage</h3><p>Add a &lt;script&gt; tag to your page:</p><pre>&lt;script type="module" src="path/to/node_modules/@dannymoerkerke/src/audio-recorder.js"&gt;&lt;/script&gt;</pre><p>or import it:</p><pre>import './path/to/node_modules/@dannymoerkerke/src/audio-recorder.js';</pre><p>and add the tag to your page:</p><pre>&lt;audio-recorder&gt;&lt;/audio-recorder&gt;</pre><h3>Attributes</h3><ul><li><code>bars</code>: number of bars in frequency analyzer, default: 20</li><li><code>view</code>: <code>frequencies</code> or <code>waveform</code>, default: <code>frequencies</code></li></ul><h3>Styling</h3><ul><li><code>--width</code>: width of the recorder, default: 600px</li><li><code>--height</code>: height of the recorder, default: 300px</li><li><code>--border</code>: border of the recorder, default: none</li><li><code>--frequency-background-color</code>: background color of frequency analyzer, default: #ffffff</li><li><code>--frequency-bars-color</code>: background color of frequency bars, default: #ff0000</li><li><code>--waveform-background-color</code>: background color of waveform view, default: #ffffff</li><li><code>--waveform-color</code>: color of waveform, default: #ff0000</li><li><code>--waveform-progress-color</code>: color of waveform of part of file that has already played, default: #337ab7</li></ul><p>In addition, mixins can be applied using the <code>::part</code> pseudo element.</p><p>Usage:</p><pre>
+audio-recorder::part([selector]) {
 
-      audio-recorder::part(slider) {
-        --track-color: #000000;
-        --thumb-color: #000000;
-        width: 100%;
-      }
+  /** css rules **/
 
-      #record-audio {
-        --font-color: #ff0000;
-      }
-      ul {
-        width: 400px;
-        padding: 0;
-      }
-      li {
-        list-style-type: none;
-        display: flex;
-        align-items: center;
-        padding: 5px;
-      }
-      li material-button {
-        margin-right: 10px;
-        pointer-events: none;
-      }</style></head><body><h1>audio recorder</h1><audio-recorder bars="40"></audio-recorder><section><h3>Usage</h3><ul><li><material-button id="capture-audio" raised><i class="material-icons" slot="left-icon">mic</i></material-button>Start capturing microphone</li><li><material-button id="play" raised><i class="material-icons" slot="left-icon">play_arrow</i></material-button>Play the recorded audio</li><li><material-button id="record-audio" raised><i class="material-icons" slot="left-icon">fiber_manual_record</i></material-button>Start recording audio</li><li><material-button id="save-audio" raised><i class="material-icons" slot="left-icon">save</i></material-button>Save recorded audio</li><li><material-button id="frequencies-button" raised><i class="material-icons" slot="left-icon">equalizer</i></material-button>Show frequency analyzer</li><li><material-button id="waveform-button" raised><i class="material-icons" slot="left-icon">graphic_eq</i></material-button>Show recorded audio as waveform</li></ul></section><material-dialog id="mic-permission-dialog"><h3 slot="header">No access to media</h3><p slot="body">Your device does not have permission to access the microphone. Please enable this in your device's settings.</p><div slot="footer"><material-button id="dialog-close" label="Close" raised></material-button></div></material-dialog><script src="bundle.d8ce95f9602d91db43aa.js"></script></body></html>
+}
+        </pre><p>Available selectors:</p><ul><li><code>::part(button)</code>: styles the buttons except the volume buttons</li><li><code>::part(volume-button)</code>: styles the volume buttons</li><li><code>::part(slider)</code>: styles the volume slider</li><li><code>::part(time)</code>: styles the elapsed and remaining time display</li></ul><p>The buttons and slider are part of the <code>material-webcomponents</code> library <a href="https://dannymoerkerke.github.io/material-webcomponents/">https://dannymoerkerke.github.io/material-webcomponents/</a></p><p>The Custom CSS properties exposed by these components can be used as part of the styling through <code>::part</code>.</p><p>For example, the <code>material-slider</code> component exposes the properties <code>--track-size</code>, <code>--track-color</code>, <code>--thumb-size</code> and <code>--thumb-color</code>.</p><p>These can be used in combination with <code>::part</code> to style the volume slider:</p><pre>
+audio-recorder::part(slider) {
+  --track-color: #000000;
+  --track-size: 3px;
+  --thumb-color: #000000;
+  --thumb-size: 10px;
+}
+        </pre><h3>Events</h3><p>Audio recorder throws a <code>notallowed</code> event when permission to access the device's microphone is denied:</p><pre>
+const recorder = document.querySelector('audio-recorder');
+
+recorder.addEventListener('notallowed' e => {
+
+  // prompt user to change device settings to allow access to microphone
+
+});
+        </pre></section></main><footer></footer><material-dialog id="mic-permission-dialog"><h3 slot="header">No access to media</h3><p slot="body">Your device does not have permission to access the microphone. Please enable this in your device's settings.</p><div slot="footer"><material-button id="dialog-close" label="Close" raised></material-button></div></material-dialog><script src="bundle.js"></script></body></html>
