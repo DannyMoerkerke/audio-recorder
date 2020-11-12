@@ -515,7 +515,7 @@ export class AudioRecorder extends HTMLElement {
     await this.renderWaveform(file);
     await this.initializeAudio(this.input);
     this.progressContainer.style.width = 0;
-    
+
     this.view = 'waveform';
   }
 
@@ -796,14 +796,14 @@ export class AudioRecorder extends HTMLElement {
 
       let x = 0;
 
-      dataArray.map((_, i) => {
+      for (let i = 0; i < bufferLength; i++) {
         const barHeight = (dataArray[i] + 140) * 2;
 
         this.frequencyCanvasContext.fillStyle = this.frequenciesBarsColor;
         this.frequencyCanvasContext.fillRect(x, this.canvasHeight - barHeight * 0.75, barWidth, barHeight * 0.75);
 
         x += barWidth + 1;
-      });
+      }
     };
 
     draw();
