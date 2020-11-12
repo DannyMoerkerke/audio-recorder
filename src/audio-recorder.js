@@ -116,6 +116,10 @@ export class AudioRecorder extends HTMLElement {
           pointer-events: none;
         }
         
+        :host([view="frequencies"]) #audio-container {
+          pointer-events: none;
+        }
+        
         :host([view="waveform"]) #waveform-container,
         :host([view="waveform"]) #progress-container {
           display: block;
