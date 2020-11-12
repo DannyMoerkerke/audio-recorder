@@ -22,6 +22,12 @@ or import it:
 import './path/to/node_modules/@dannymoerkerke/src/audio-recorder.js';
 ```
 
+You can also import the bundled version which is in `dist` for use with Webpack:
+
+```javascript
+import './path/to/node_modules/@dannymoerkerke/dist/audio-recorder.js';
+```
+
 and add the tag to your page:
 
 ```html
