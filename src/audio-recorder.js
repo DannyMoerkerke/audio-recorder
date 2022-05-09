@@ -370,6 +370,26 @@ export class AudioRecorder extends HTMLElement {
 
     this.canvasWidth = this.canvas.width;
     this.canvasHeight = this.canvas.height;
+
+    const mimeTypes = [
+      {
+        type: 'audio/mpeg',
+        ext: 'mp3'
+      },
+      {
+        type: 'audio/webm',
+        ext: 'webm',
+      },
+      {
+        type: 'audio/mp4',
+        ext: 'mp4'
+      }
+    ];
+
+    const isSupportedMimeType = ({type}) => MediaRecorder.isTypeSupported(type);
+    const defaultMime = {type: 'audio/mpeg', ext: 'mp3'};
+
+    this.mimeType = 'isTypeSupported' in MediaRecorder ? mimeTypes.find(isSupportedMimeType) : defaultMime;
   }
 
   connectedCallback() {
@@ -509,7 +529,7 @@ export class AudioRecorder extends HTMLElement {
       this.src = e.target.result;
 
       if(!this.nativeFileSystemSupported) {
-        this.saveAudioLink.download = 'isTypeSupported' in MediaRecorder ? 'capture.webm' : 'capture.mp3';
+        this.saveAudioLink.download = `capture.${this.mimeType.ext}`;
         this.saveAudioLink.href = e.target.result;
       }
     };
@@ -584,7 +604,7 @@ export class AudioRecorder extends HTMLElement {
 
     this.recorder = new MediaRecorder(this.stream);
 
-    const options = 'isTypeSupported' in MediaRecorder ? {type: 'audio/webm'} : {type: 'audio/mpeg'};
+    const options = {type: `${this.mimeType.type}`};
 
     this.recorder.start(250);
 
