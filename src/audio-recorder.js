@@ -13,8 +13,6 @@ export class AudioRecorder extends HTMLElement {
     const shadowRoot = this.attachShadow({mode: 'open'});
 
     shadowRoot.innerHTML = `
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-      
       <style>
         :host {
           --width: 210px;
@@ -32,6 +30,29 @@ export class AudioRecorder extends HTMLElement {
           min-width: 210px;
           width: var(--width);
           min-height: var(--height);
+        }
+        
+        @font-face {
+          font-family: 'Material Icons';
+          font-style: normal;
+          font-weight: 400;
+          src: url(https://fonts.gstatic.com/s/materialicons/v128/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2');
+        }
+        
+        .material-icons {
+          font-family: 'Material Icons';
+          font-weight: normal;
+          font-style: normal;
+          font-size: 24px;
+          line-height: 1;
+          letter-spacing: normal;
+          text-transform: none;
+          display: inline-block;
+          white-space: nowrap;
+          word-wrap: normal;
+          direction: ltr;
+          -webkit-font-feature-settings: 'liga';
+          -webkit-font-smoothing: antialiased;
         }
         
         canvas {
