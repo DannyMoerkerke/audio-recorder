@@ -33,7 +33,15 @@
 
         <h3>Demo</h3>
 
-        <audio-recorder bars="40"></audio-recorder>
+        <audio-recorder bars="40" id="audio-recorder"></audio-recorder>
+
+        <button id="capture-audio" part="button" invoketarget="audio-recorder" invokeaction="capture">
+          <i class="material-icons" slot="left-icon">mic</i>
+        </button>
+
+        <button id="stop-capture-audio" part="button" invoketarget="audio-recorder" invokeaction="stop-capture">
+          <i class="material-icons" slot="left-icon">mic_off</i>
+        </button>
 
         <p>To run the demo locally , run <code>npm install</code> once and then <code>npm start</code> and view the demo
           on
