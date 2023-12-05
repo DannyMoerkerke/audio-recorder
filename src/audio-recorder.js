@@ -1,6 +1,3 @@
-import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-button.js';
-import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-slider.js';
-
 export class AudioRecorder extends HTMLElement {
 
   static get observedAttributes() {
@@ -59,21 +56,17 @@ export class AudioRecorder extends HTMLElement {
           display: block;
         }
         
-        material-slider {
-          --track-height: 1px;
-          --thumb-size: 12px;
-        }
-        
-        #volume-min,
-        #volume-max {
-          --button-color-hover: transparent;
-        }
-        
         #buttons {
           display: flex;
           flex-direction: row;
+          gap: 2px;
         }
         
+        button {
+          border: none;
+          padding: 6px 8px;
+        }
+     
         #controls {
           display: flex;
           flex-direction: row;
@@ -174,11 +167,11 @@ export class AudioRecorder extends HTMLElement {
         }
         
         #stop-record-audio {
-          --font-color: #ff0000;
+          color: #ff0000;
         }
         
         #record-audio {
-          --font-color: #ff0000;
+          color: #ff0000;
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
@@ -482,7 +475,7 @@ export class AudioRecorder extends HTMLElement {
     this.showElapsedTime(0);
 
     this.audioContainer.addEventListener('click', this.handleWaveformClick.bind(this));
-    this.volume.addEventListener('change', e => this.setVolume(e.detail.value));
+    this.volume.addEventListener('input', e => this.setVolume(e.target.value));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
 
     const init = () => {
