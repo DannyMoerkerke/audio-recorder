@@ -266,53 +266,53 @@ export class AudioRecorder extends HTMLElement {
         <div id="controls">
           <div id="buttons">
             <button id="capture-audio" part="button">
-              <i class="material-icons" slot="left-icon">mic</i>
+              <i class="material-icons">mic</i>
             </button>
             
             <button id="stop-capture-audio" part="button">
-              <i class="material-icons" slot="left-icon">mic_off</i>
+              <i class="material-icons">mic_off</i>
             </button>
             
             <button id="play" part="button">
-              <i class="material-icons" slot="left-icon">play_arrow</i>
+              <i class="material-icons">play_arrow</i>
             </button>
             
             <button id="pause" part="button">
-              <i class="material-icons" slot="left-icon">pause</i>
+              <i class="material-icons">pause</i>
             </button>
       
             <button id="record-audio" part="button">
-              <i class="material-icons" slot="left-icon">fiber_manual_record</i>
+              <i class="material-icons">fiber_manual_record</i>
             </button>
             
             <button id="stop-record-audio" part="button">
-              <i class="material-icons" slot="left-icon">stop</i>
+              <i class="material-icons">stop</i>
             </button>
             
             <button id="save-audio" part="button">
-              <a id="save-audio-link" slot="left-icon" target="_blank">
+              <a id="save-audio-link" target="_blank">
                 <i class="material-icons">save</i>
               </a>
             </button>
             
             <button id="frequencies-button" part="button">
-              <i class="material-icons" slot="left-icon">equalizer</i>
+              <i class="material-icons">equalizer</i>
             </button>
             
             <button id="waveform-button" part="button">
-              <i class="material-icons" slot="left-icon">graphic_eq</i>
+              <i class="material-icons">graphic_eq</i>
             </button>
           </div>
           
           <div id="volume-container">
             <button id="volume-min" part="volume-button">
-              <i class="material-icons" slot="left-icon">volume_off</i>
+              <i class="material-icons">volume_off</i>
             </button>
             
             <input type="range" id="volume" value="1" min="0" max="1" step="0.01" part="slider">
             
             <button id="volume-max" part="volume-button">
-              <i class="material-icons" slot="left-icon">volume_up</i>
+              <i class="material-icons">volume_up</i>
             </button>
           </div>
         

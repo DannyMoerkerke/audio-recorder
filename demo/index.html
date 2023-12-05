@@ -44,44 +44,44 @@
           <h3>Usage</h3>
           <ul class="usage">
             <li>
-              <material-button id="capture-audio" raised>
-                <i class="material-icons" slot="left-icon">mic</i>
-              </material-button>
+              <button>
+                <i class="material-icons">mic</i>
+              </button>
               Start capturing microphone
             </li>
 
             <li>
-              <material-button id="play" raised>
-                <i class="material-icons" slot="left-icon">play_arrow</i>
-              </material-button>
+              <button>
+                <i class="material-icons">play_arrow</i>
+              </button>
               Play the recorded audio
             </li>
 
             <li>
-              <material-button id="record-audio" raised>
-                <i class="material-icons" slot="left-icon">fiber_manual_record</i>
-              </material-button>
+              <button>
+                <i class="material-icons">fiber_manual_record</i>
+              </button>
               Start recording audio
             </li>
 
             <li>
-              <material-button id="save-audio" raised>
-                <i class="material-icons" slot="left-icon">save</i>
-              </material-button>
+              <button>
+                <i class="material-icons">save</i>
+              </button>
               Save recorded audio
             </li>
 
             <li>
-              <material-button id="frequencies-button" raised>
-                <i class="material-icons" slot="left-icon">equalizer</i>
-              </material-button>
+              <button>
+                <i class="material-icons">equalizer</i>
+              </button>
               Show frequency analyzer
             </li>
 
             <li>
-              <material-button id="waveform-button" raised>
-                <i class="material-icons" slot="left-icon">graphic_eq</i>
-              </material-button>
+              <button>
+                <i class="material-icons">graphic_eq</i>
+              </button>
               Show recorded audio as waveform
             </li>
           </ul>
@@ -150,28 +150,18 @@ audio-recorder::part([selector]) {
         <ul>
           <li><code>::part(button)</code>: styles the buttons except the volume buttons</li>
           <li><code>::part(volume-button)</code>: styles the volume buttons</li>
-          <li><code>::part(slider)</code>: styles the volume slider</li>
           <li><code>::part(time)</code>: styles the elapsed and remaining time display</li>
         </ul>
-
-        <p>The buttons and slider are part of the <code>material-webcomponents</code> library
-          <a href="https://dannymoerkerke.github.io/material-webcomponents/">https://dannymoerkerke.github.io/material-webcomponents/</a>
-        </p>
 
         <p>The Custom CSS properties exposed by these components can be used as part of the styling through
           <code>::part</code>.</p>
 
-        <p>For example, the <code>material-slider</code> component exposes the properties <code>--track-size</code>,
-          <code>--track-color</code>, <code>--thumb-size</code> and <code>--thumb-color</code>.</p>
-
-        <p>These can be used in combination with <code>::part</code> to style the volume slider:</p>
+        <p>For example, buttons can be styled like this:</p>
 
         <pre>
-audio-recorder::part(slider) {
-  --track-color: #000000;
-  --track-size: 3px;
-  --thumb-color: #000000;
-  --thumb-size: 10px;
+audio-recorder::part(button) {
+  color: #000000;
+  padding: 8px;
 }
         </pre>
 
@@ -193,23 +183,22 @@ recorder.addEventListener('notallowed' e => {
 
     <footer></footer>
 
-    <material-dialog id="mic-permission-dialog">
-      <h3 slot="header">No access to media</h3>
-      <p slot="body">Your device does not have permission to access the microphone. Please enable this in your device's
+    <dialog id="mic-permission-dialog">
+      <h3>No access to media</h3>
+      <p>Your device does not have permission to access the microphone. Please enable this in your device's
         settings.</p>
-      <div slot="footer">
-        <material-button id="dialog-close" label="Close" raised></material-button>
+      <div>
+        <button id="dialog-close">Close</button>
       </div>
-    </material-dialog>
+    </dialog>
 
-    <script type="module" src="node_modules/@dannymoerkerke/material-webcomponents/src/material-dialog.js"></script>
     <script type="module" src="src/audio-recorder.js"></script>
     <script>
       const recorder = document.querySelector('audio-recorder');
       const micPermissionDialog = document.querySelector('#mic-permission-dialog');
       const closeButton = document.querySelector('#dialog-close');
 
-      recorder.addEventListener('notallowed', () => micPermissionDialog.open());
+      recorder.addEventListener('notallowed', () => micPermissionDialog.showModal());
       closeButton.addEventListener('click', () => micPermissionDialog.close());
     </script>
   </body>
