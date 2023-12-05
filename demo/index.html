@@ -35,13 +35,39 @@
 
         <audio-recorder bars="40" id="audio-recorder"></audio-recorder>
 
-        <button id="capture-audio" part="button" invoketarget="audio-recorder" invokeaction="capture">
-          <i class="material-icons">mic</i>
-        </button>
+        <div id="buttons">
+          <button id="capture-audio" invoketarget="audio-recorder" invokeaction="capture">
+            <i class="material-icons">mic</i>
+          </button>
 
-        <button id="stop-capture-audio" part="button" invoketarget="audio-recorder" invokeaction="stop-capture">
-          <i class="material-icons">mic_off</i>
-        </button>
+          <button id="stop-capture-audio" invoketarget="audio-recorder" invokeaction="stop-capture">
+            <i class="material-icons">mic_off</i>
+          </button>
+
+          <button id="play" invoketarget="audio-recorder" invokeaction="play">
+            <i class="material-icons">play_arrow</i>
+          </button>
+
+          <button id="pause" invoketarget="audio-recorder" invokeaction="pause">
+            <i class="material-icons">pause</i>
+          </button>
+
+          <button id="record-audio" invoketarget="audio-recorder" invokeaction="record">
+            <i class="material-icons">fiber_manual_record</i>
+          </button>
+
+          <button id="stop-record-audio" invoketarget="audio-recorder" invokeaction="stop-record">
+            <i class="material-icons">stop</i>
+          </button>
+
+          <button id="frequencies-button" invoketarget="audio-recorder" invokeaction="show-frequencies">
+            <i class="material-icons">equalizer</i>
+          </button>
+
+          <button id="waveform-button" invoketarget="audio-recorder" invokeaction="show-waveform">
+            <i class="material-icons">graphic_eq</i>
+          </button>
+        </div>
 
         <p>To run the demo locally , run <code>npm install</code> once and then <code>npm start</code> and view the demo
           on

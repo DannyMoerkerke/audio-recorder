@@ -187,3 +187,92 @@ audio-recorder::part(slider) {
   padding: 6px 8px;
 }
 
+#buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+}
+
+button {
+  border: none;
+  padding: 6px 8px;
+}
+
+#stop-capture-audio,
+#stop-record-audio {
+  display: none;
+}
+
+#stop-record-audio {
+  color: #ff0000;
+}
+
+main:has(audio-recorder[state="capturing"]) #stop-capture-audio,
+main:has(audio-recorder[state="recording"]) #stop-capture-audio {
+  display: block;
+}
+main:has(audio-recorder[state="capturing"]) #capture-audio,
+main:has(audio-recorder[state="recording"]) #capture-audio {
+  display: none;
+}
+
+#pause {
+  display: none;
+}
+
+main:has(audio-recorder[state="playing"]) #pause {
+  display: block;
+}
+
+main:has(audio-recorder[state="playing"]) #play {
+  display: none;
+}
+
+main:has(audio-recorder[state="recording"]) #stop-record-audio {
+  display: block;
+}
+main:has(audio-recorder[state="recording"]) #record-audio {
+  display: none;
+}
+main:has(audio-recorder[state="capturing"]) #record-audio {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: initial;
+}
+#stop-record-audio {
+  color: #ff0000;
+}
+
+#record-audio {
+  color: #ff0000;
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#play,
+main:has(audio-recorder[src][state="capturing"]) #play {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+main:has(audio-recorder[src]) #play,
+main:has(audio-recorder[src]) #save-audio {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: initial;
+}
+
+main:has(audio-recorder[view="frequencies"]) #frequencies-button {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+main:has(audio-recorder[view="waveform"]) #waveform-button {
+  opacity: .5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
