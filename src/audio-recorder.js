@@ -1,6 +1,3 @@
-import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-button.js';
-import '../node_modules/@dannymoerkerke/material-webcomponents/src/material-slider.js';
-
 export class AudioRecorder extends HTMLElement {
 
   static get observedAttributes() {
@@ -59,20 +56,18 @@ export class AudioRecorder extends HTMLElement {
           display: block;
         }
         
-        material-slider {
-          --track-height: 1px;
-          --thumb-size: 12px;
-        }
-        
-        #volume-min,
-        #volume-max {
-          --button-color-hover: transparent;
-        }
-        
         #buttons {
           display: flex;
           flex-direction: row;
+          gap: 2px;
         }
+        
+        button {
+          border: none;
+          padding: 6px 8px;
+        }
+        
+        
         
         #controls {
           display: flex;
@@ -174,11 +169,11 @@ export class AudioRecorder extends HTMLElement {
         }
         
         #stop-record-audio {
-          --font-color: #ff0000;
+          color: #ff0000;
         }
         
         #record-audio {
-          --font-color: #ff0000;
+          color: #ff0000;
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
@@ -270,55 +265,55 @@ export class AudioRecorder extends HTMLElement {
         
         <div id="controls">
           <div id="buttons">
-            <material-button id="capture-audio" raised part="button">
+            <button id="capture-audio" part="button">
               <i class="material-icons" slot="left-icon">mic</i>
-            </material-button>
+            </button>
             
-            <material-button id="stop-capture-audio" raised part="button">
+            <button id="stop-capture-audio" part="button">
               <i class="material-icons" slot="left-icon">mic_off</i>
-            </material-button>
+            </button>
             
-            <material-button id="play" raised part="button">
+            <button id="play" part="button">
               <i class="material-icons" slot="left-icon">play_arrow</i>
-            </material-button>
+            </button>
             
-            <material-button id="pause" raised part="button">
+            <button id="pause" part="button">
               <i class="material-icons" slot="left-icon">pause</i>
-            </material-button>
+            </button>
       
-            <material-button id="record-audio" raised part="button">
+            <button id="record-audio" part="button">
               <i class="material-icons" slot="left-icon">fiber_manual_record</i>
-            </material-button>
+            </button>
             
-            <material-button id="stop-record-audio" raised part="button">
+            <button id="stop-record-audio" part="button">
               <i class="material-icons" slot="left-icon">stop</i>
-            </material-button>
+            </button>
             
-            <material-button id="save-audio" raised part="button">
+            <button id="save-audio" part="button">
               <a id="save-audio-link" slot="left-icon" target="_blank">
                 <i class="material-icons">save</i>
               </a>
-            </material-button>
+            </button>
             
-            <material-button id="frequencies-button" raised part="button">
+            <button id="frequencies-button" part="button">
               <i class="material-icons" slot="left-icon">equalizer</i>
-            </material-button>
+            </button>
             
-            <material-button id="waveform-button" raised part="button">
+            <button id="waveform-button" part="button">
               <i class="material-icons" slot="left-icon">graphic_eq</i>
-            </material-button>
+            </button>
           </div>
           
           <div id="volume-container">
-            <material-button id="volume-min" circle part="volume-button">
+            <button id="volume-min" part="volume-button">
               <i class="material-icons" slot="left-icon">volume_off</i>
-            </material-button>
+            </button>
             
-            <material-slider id="volume" value="1" min="0" max="1" step="0.01" part="slider"></material-slider>
+            <input type="range" id="volume" value="1" min="0" max="1" step="0.01" part="slider">
             
-            <material-button id="volume-max" circle part="volume-button">
+            <button id="volume-max" part="volume-button">
               <i class="material-icons" slot="left-icon">volume_up</i>
-            </material-button>
+            </button>
           </div>
         
           <div id="time" part="time">
@@ -476,7 +471,7 @@ export class AudioRecorder extends HTMLElement {
     this.audioContainer.addEventListener('click', this.handleWaveformClick.bind(this));
     this.playButton.addEventListener('click', this.playPause.bind(this));
     this.pauseButton.addEventListener('click', this.playPause.bind(this));
-    this.volume.addEventListener('change', e => this.setVolume(e.detail.value));
+    this.volume.addEventListener('input', e => this.setVolume(e.target.value));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
     this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
     this.waveformButton.addEventListener('click', this.showWaveform.bind(this));
