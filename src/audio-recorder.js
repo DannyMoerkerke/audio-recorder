@@ -28,14 +28,14 @@ export class AudioRecorder extends HTMLElement {
           width: var(--width);
           min-height: var(--height);
         }
-        
+
         @font-face {
           font-family: 'Material Icons';
           font-style: normal;
           font-weight: 400;
           src: url(https://fonts.gstatic.com/s/materialicons/v128/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2) format('woff2');
         }
-        
+
         .material-icons {
           font-family: 'Material Icons';
           font-weight: normal;
@@ -51,24 +51,24 @@ export class AudioRecorder extends HTMLElement {
           -webkit-font-feature-settings: 'liga';
           -webkit-font-smoothing: antialiased;
         }
-        
+
         canvas {
           display: block;
         }
-        
+
         #buttons {
           display: flex;
           flex-direction: row;
           gap: 2px;
         }
-        
+
         button {
           border: none;
           padding: 6px 8px;
         }
-        
-        
-        
+
+
+
         #controls {
           display: flex;
           flex-direction: row;
@@ -78,18 +78,22 @@ export class AudioRecorder extends HTMLElement {
           padding: 5px 10px 5px 5px;
           max-width: 800px;
         }
-        
+
+        #microphone-input {
+          max-width: 100px;
+        }
+
         #time {
           display: flex;
           align-items: center;
           padding: 5px;
         }
-        
+
         #volume-container {
           display: flex;
           align-items: center;
         }
-        
+
         #container {
           width: 100%;
           height: 100%;
@@ -97,56 +101,56 @@ export class AudioRecorder extends HTMLElement {
           flex-direction: column;
           flex-grow: 1;
         }
-        
+
         #audio-container {
           position: relative;
           flex-grow: 1;
           pointer-events: none;
         }
-        
+
         :host([src]) #audio-container {
           pointer-events: initial;
         }
-        
+
         #waveform-container,
         #frequencies-container {
           display: none;
         }
-        
+
         #waveform-container {
           background-color: var(--waveform-background-color);
         }
-        
+
         #frequencies-container {
           z-index: 1;
           background-color: var(--frequency-background-color);
         }
-        
+
         :host([view="frequencies"]) #frequencies-container {
           display: block;
         }
-        
+
         :host([view="frequencies"]) #frequencies-button {
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
         }
-        
+
         :host([view="frequencies"]) #audio-container {
           pointer-events: none;
         }
-        
+
         :host([view="waveform"]) #waveform-container,
         :host([view="waveform"]) #progress-container {
           display: block;
         }
-        
+
         :host([view="waveform"]) #waveform-button {
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
         }
-        
+
         #progress-container {
           display: none;
           position: absolute;
@@ -158,27 +162,27 @@ export class AudioRecorder extends HTMLElement {
           border-right-style: solid;
           border-right-color: var(--waveform-progress-color);
         }
-        
+
         audio {
           display: none;
         }
-        
+
         #stop-capture-audio,
         #stop-record-audio {
           display: none;
         }
-        
+
         #stop-record-audio {
           color: #ff0000;
         }
-        
+
         #record-audio {
           color: #ff0000;
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
         }
-        
+
         #play,
         #save-audio,
         :host([src][state="capturing"]) #play,
@@ -187,14 +191,14 @@ export class AudioRecorder extends HTMLElement {
           cursor: not-allowed;
           pointer-events: none;
         }
-        
+
         :host([src]) #play,
         :host([src]) #save-audio {
           opacity: 1;
           cursor: pointer;
           pointer-events: initial;
         }
-        
+
         #save-audio a {
           color: #000000;
           text-decoration: none;
@@ -204,25 +208,25 @@ export class AudioRecorder extends HTMLElement {
           width: 100%;
           height: 100%;
         }
-        
+
         #pause {
           display: none;
         }
-        
+
         :host([state="playing"]) #pause {
           display: block;
         }
-        
+
         :host([state="playing"]) #play {
           display: none;
         }
-        
+
         :host([state="playing"]) #capture-audio {
           opacity: .5;
           cursor: not-allowed;
           pointer-events: none;
         }
-        
+
         :host([state="capturing"]) #stop-capture-audio,
         :host([state="recording"]) #stop-capture-audio {
           display: block;
@@ -231,13 +235,13 @@ export class AudioRecorder extends HTMLElement {
         :host([state="recording"]) #capture-audio {
           display: none;
         }
-        
+
         :host([state="capturing"]) #record-audio {
           opacity: 1;
           cursor: pointer;
           pointer-events: initial;
         }
-        
+
         :host([state="recording"]) #stop-record-audio {
           display: block;
         }
@@ -245,77 +249,80 @@ export class AudioRecorder extends HTMLElement {
           display: none;
         }
       </style>
-      
+
       <audio id="input" controls></audio>
-      
+
       <div id="container">
         <div id="audio-container">
           <div id="frequencies-container">
             <canvas id="frequencies"></canvas>
           </div>
-  
+
           <div id="waveform-container">
             <canvas id="waveform"></canvas>
           </div>
-          
+
           <div id="progress-container">
             <canvas id="progress"></canvas>
           </div>
         </div>
-        
+
         <div id="controls">
           <div id="buttons">
             <button id="capture-audio" part="button">
               <i class="material-icons">mic</i>
             </button>
-            
+
             <button id="stop-capture-audio" part="button">
               <i class="material-icons">mic_off</i>
             </button>
-            
+
+            <select name="microphone-input" id="microphone-input"></select>
+
             <button id="play" part="button">
               <i class="material-icons">play_arrow</i>
             </button>
-            
+
             <button id="pause" part="button">
               <i class="material-icons">pause</i>
             </button>
-      
+
             <button id="record-audio" part="button">
               <i class="material-icons">fiber_manual_record</i>
             </button>
-            
+
+
             <button id="stop-record-audio" part="button">
               <i class="material-icons">stop</i>
             </button>
-            
+
             <button id="save-audio" part="button">
               <a id="save-audio-link" target="_blank">
                 <i class="material-icons">save</i>
               </a>
             </button>
-            
+
             <button id="frequencies-button" part="button">
               <i class="material-icons">equalizer</i>
             </button>
-            
+
             <button id="waveform-button" part="button">
               <i class="material-icons">graphic_eq</i>
             </button>
           </div>
-          
+
           <div id="volume-container">
             <button id="volume-min" part="volume-button">
               <i class="material-icons">volume_off</i>
             </button>
-            
+
             <input type="range" id="volume" value="1" min="0" max="1" step="0.01" part="slider">
-            
+
             <button id="volume-max" part="volume-button">
               <i class="material-icons">volume_up</i>
             </button>
           </div>
-        
+
           <div id="time" part="time">
             <span id="elapsed-time"></span> / <span id="total-time"></span>
           </div>
@@ -362,6 +369,8 @@ export class AudioRecorder extends HTMLElement {
     this.waveformButton = this.shadowRoot.querySelector('#waveform-button');
     this.captureAudioButton = this.shadowRoot.querySelector('#capture-audio');
     this.stopCaptureAudioButton = this.shadowRoot.querySelector('#stop-capture-audio');
+    this.microphoneSelectInput =
+      this.shadowRoot.querySelector("#microphone-input");
     this.recordAudioButton = this.shadowRoot.querySelector('#record-audio');
     this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
     this.saveAudioLink = this.shadowRoot.querySelector('#save-audio-link');
@@ -471,6 +480,7 @@ export class AudioRecorder extends HTMLElement {
     this.audioContainer.addEventListener('click', this.handleWaveformClick.bind(this));
     this.playButton.addEventListener('click', this.playPause.bind(this));
     this.pauseButton.addEventListener('click', this.playPause.bind(this));
+    this.microphoneSelectInput.addEventListener('change', this.handleMicrophoneChange.bind(this));
     this.volume.addEventListener('input', e => this.setVolume(e.target.value));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
     this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
@@ -580,7 +590,7 @@ export class AudioRecorder extends HTMLElement {
   async captureAudio() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({audio: true});
-
+      await this.populateMicrophoneList();
       this.currentVolume = this.volume.value;
       this.setVolume(0);
       this.volume.disabled = true;
@@ -598,6 +608,34 @@ export class AudioRecorder extends HTMLElement {
         }));
       }
     }
+  }
+
+  async populateMicrophoneList() {
+    console.log('Populating Microphone List');
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioDevices = devices.filter(device => device.kind === 'audioinput');
+    console.log('Audio Devices', audioDevices);
+    // Clear the select input
+    this.microphoneSelectInput.innerHTML = '';
+    for(const device of audioDevices) {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      option.text = device.label || `Microphone ${this.microphoneSelectInput.length + 1}`;
+      this.microphoneSelectInput.appendChild(option);
+    }
+    this.audioDevices = audioDevices;
+    return audioDevices;
+  }
+
+  handleMicrophoneChange(e) {
+    const deviceId = e.target.value;
+    const device = this.audioDevices.find(device => device.deviceId === deviceId);
+    console.log('Selected Device', device);
+
+    navigator.mediaDevices.getUserMedia({audio: {deviceId}})
+    .then(stream => {
+      this.stream = stream;
+    });
   }
 
   stopCaptureAudio() {
