@@ -345,8 +345,9 @@ export class AudioRecorder extends HTMLElement {
     this.frequencyCanvas = this.shadowRoot.querySelector('#frequencies');
     this.frequencyCanvasContext = this.frequencyCanvas.getContext('2d');
     this.progressContainer = this.shadowRoot.querySelector('#progress-container');
+    this.container = this.shadowRoot.querySelector('#container');
 
-    this.addEventListener('command', ({command}) => {
+    const handleCommand = ({command}) => {
       const commands = {
         '--capture': this.captureAudio,
         '--stop-capture': this.stopCaptureAudio,
@@ -363,7 +364,10 @@ export class AudioRecorder extends HTMLElement {
       if(commands[command]) {
         commands[command].call(this);
       }
-    });
+    };
+
+    this.addEventListener('command', handleCommand);
+    this.container.addEventListener('command', handleCommand);
 
     this.elapsedTime = this.shadowRoot.querySelector('#elapsed-time');
     this.totalTime = this.shadowRoot.querySelector('#total-time');
