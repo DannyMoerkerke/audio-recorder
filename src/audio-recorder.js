@@ -67,8 +67,6 @@ export class AudioRecorder extends HTMLElement {
           padding: 6px 8px;
         }
         
-        
-        
         #controls {
           display: flex;
           flex-direction: row;
@@ -265,53 +263,53 @@ export class AudioRecorder extends HTMLElement {
         
         <div id="controls">
           <div id="buttons">
-            <button id="capture-audio" part="button">
+            <button id="capture-audio" part="button" commandfor="container" command="--capture">
               <i class="material-icons">mic</i>
             </button>
             
-            <button id="stop-capture-audio" part="button">
+            <button id="stop-capture-audio" part="button" commandfor="container" command="--stop-capture">
               <i class="material-icons">mic_off</i>
             </button>
             
-            <button id="play" part="button">
+            <button id="play" part="button" commandfor="container" command="--play">
               <i class="material-icons">play_arrow</i>
             </button>
             
-            <button id="pause" part="button">
+            <button id="pause" part="button" commandfor="container" command="--pause">
               <i class="material-icons">pause</i>
             </button>
       
-            <button id="record-audio" part="button">
+            <button id="record-audio" part="button" commandfor="container" command="--record">
               <i class="material-icons">fiber_manual_record</i>
             </button>
             
-            <button id="stop-record-audio" part="button">
+            <button id="stop-record-audio" part="button" commandfor="container" command="--stop-record">
               <i class="material-icons">stop</i>
             </button>
             
             <button id="save-audio" part="button">
-              <a id="save-audio-link" target="_blank">
+              <a id="save-audio-link"" target="_blank">
                 <i class="material-icons">save</i>
               </a>
             </button>
             
-            <button id="frequencies-button" part="button">
+            <button id="frequencies-button" part="button" commandfor="container" command="--show-frequencies">
               <i class="material-icons">equalizer</i>
             </button>
             
-            <button id="waveform-button" part="button">
+            <button id="waveform-button" part="button" commandfor="container" command="--show-waveform">
               <i class="material-icons">graphic_eq</i>
             </button>
           </div>
           
           <div id="volume-container">
-            <button id="volume-min" part="volume-button">
+            <button id="volume-min" circle part="volume-button" commandfor="container" command="--volume-min">
               <i class="material-icons">volume_off</i>
             </button>
             
-            <input type="range" id="volume" value="1" min="0" max="1" step="0.01" part="slider">
+            <input type="range" id="volume" value="1" min="0" max="1" step="0.01" part="slider" invoketarget="container" invokeaction="volume">
             
-            <button id="volume-max" part="volume-button">
+            <button id="volume-max" circle part="volume-button" commandfor="container" command="--volume-max">
               <i class="material-icons">volume_up</i>
             </button>
           </div>
@@ -346,24 +344,31 @@ export class AudioRecorder extends HTMLElement {
     this.audioContainer = this.shadowRoot.querySelector('#audio-container');
     this.frequencyCanvas = this.shadowRoot.querySelector('#frequencies');
     this.frequencyCanvasContext = this.frequencyCanvas.getContext('2d');
-    this.waveformContainer = this.shadowRoot.querySelector('#waveform-container');
     this.progressContainer = this.shadowRoot.querySelector('#progress-container');
-    this.frequenciesContainer = this.shadowRoot.querySelector('#frequencies-container');
 
-    this.playButton = this.shadowRoot.querySelector('#play');
-    this.pauseButton = this.shadowRoot.querySelector('#pause');
+    this.addEventListener('command', ({command}) => {
+      const commands = {
+        '--capture': this.captureAudio,
+        '--stop-capture': this.stopCaptureAudio,
+        '--play': this.playPause,
+        '--pause': this.playPause,
+        '--record': this.recordAudio,
+        '--stop-record': this.stopRecordAudio,
+        '--show-frequencies': this.showFrequencyAnalyzer,
+        '--show-waveform': this.showWaveform,
+        '--volume-min': () => this.setVolume(0),
+        '--volume-max': () => this.setVolume(1),
+      }
+
+      if(commands[command]) {
+        commands[command].call(this);
+      }
+    });
+
     this.elapsedTime = this.shadowRoot.querySelector('#elapsed-time');
     this.totalTime = this.shadowRoot.querySelector('#total-time');
     this.volume = this.shadowRoot.querySelector('#volume');
-    this.volumeMinButton = this.shadowRoot.querySelector('#volume-min');
-    this.volumeMaxButton = this.shadowRoot.querySelector('#volume-max');
     this.input = this.shadowRoot.querySelector('audio');
-    this.freqButton = this.shadowRoot.querySelector('#frequencies-button');
-    this.waveformButton = this.shadowRoot.querySelector('#waveform-button');
-    this.captureAudioButton = this.shadowRoot.querySelector('#capture-audio');
-    this.stopCaptureAudioButton = this.shadowRoot.querySelector('#stop-capture-audio');
-    this.recordAudioButton = this.shadowRoot.querySelector('#record-audio');
-    this.stopRecordAudioButton = this.shadowRoot.querySelector('#stop-record-audio');
     this.saveAudioLink = this.shadowRoot.querySelector('#save-audio-link');
 
     if(this.nativeFileSystemSupported) {
@@ -469,25 +474,8 @@ export class AudioRecorder extends HTMLElement {
     this.showElapsedTime(0);
 
     this.audioContainer.addEventListener('click', this.handleWaveformClick.bind(this));
-    this.playButton.addEventListener('click', this.playPause.bind(this));
-    this.pauseButton.addEventListener('click', this.playPause.bind(this));
     this.volume.addEventListener('input', e => this.setVolume(e.target.value));
     this.input.addEventListener('ended', this.stopAudio.bind(this));
-    this.freqButton.addEventListener('click', this.showFrequencyAnalyzer.bind(this));
-    this.waveformButton.addEventListener('click', this.showWaveform.bind(this));
-    this.captureAudioButton.addEventListener('click', this.captureAudio.bind(this));
-    this.stopCaptureAudioButton.addEventListener('click', this.stopCaptureAudio.bind(this));
-    this.recordAudioButton.addEventListener('click', this.recordAudio.bind(this));
-    this.stopRecordAudioButton.addEventListener('click', this.stopRecordAudio.bind(this));
-    this.volumeMinButton.addEventListener('click', e => {
-      this.setVolume(0);
-      this.volume.value = 0;
-    });
-
-    this.volumeMaxButton.addEventListener('click', e => {
-      this.setVolume(1);
-      this.volume.value = 1;
-    });
 
     const init = () => {
       this.isWebKit = 'webkitAudioContext' in window;
@@ -660,6 +648,7 @@ export class AudioRecorder extends HTMLElement {
 
   setVolume(value) {
     this.gainNode.gain.setValueAtTime(value, this.context.currentTime);
+    this.volume.value = value;
   }
 
   handleWaveformClick(e) {
