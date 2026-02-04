@@ -33,27 +33,30 @@
 
         <h3>External controls with the Invoker Commands API</h3>
         <p>
-          This demo shows how to use the audio recorder component with external controls. Internally, the audio recorder has an event listener 
-          for the <code>command</code> event. The buttons can invoke a command on the <code>&lt;audio-recorder&gt;</code> component specified in 
-          their <code>command</code> attributes. The element the command is invoked on is specified in the <code>commandfor</code> attribute which 
+          This demo shows how to use the audio recorder component with external controls. Internally, the audio recorder has an event listener
+          for the <code>command</code> event. The buttons can invoke a command on the <code>&lt;audio-recorder&gt;</code> component specified in
+          their <code>command</code> attributes. The element the command is invoked on is specified in the <code>commandfor</code> attribute which
           contains the id of the <code>&lt;audio-recorder&gt;</code> component.
-        </p>  
-
-        <p>
-          Internally, the audio-recorder component has buttons with the same attributes that all dispatch a <code>command</code> event on the component and 
-          this same event listener is invoked by the external buttons.
         </p>
 
         <p>
-          The beauty of this is that we no longer need to set a <code>click</code> event listener on each button to invoke a command on the component but 
-          a single event listener on the component itself. This single event listener also makes the controlling with external buttons possible with the 
-          same <code>command</code> and <code>commandfor</code> attributes that are part of the 
-          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Invoker_Commands_API" target="_blank">Invoker Commands API</a>.
+          Internally, the audio-recorder component has buttons with the same attributes that all dispatch a
+          <code>command</code> event on the component and this same event listener is invoked by the external buttons.
         </p>
 
         <p>
-          The Invoker Commands API is currently supported in Chrome Canary with experimental web platform features enabled, Firefox Nightly and 
-          Safari Tech Preview with the "HTML command and commandfor attributes" flag enabled.
+          The beauty of this is that we no longer need to set a <code>click</code> event listener on each button to
+          invoke a command on the component, but a single <code>command</code> event listener on the parent container
+          of the buttons inside the component. By also setting a <code>command</code> event listener on the component
+          itself with the same handler, we enable invoking commands on the component with external buttons using the
+          same <code>command</code> and <code>commandfor</code> attributes that are part of the
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Invoker_Commands_API" target="_blank">
+            Invoker Commands API</a>.
+        </p>
+
+        <p>
+          The Invoker Commands API is has Baseline support since December 2025, which means it works across the latest
+          devices and browser versions.
         </p>
 
         <h3>Demo</h3>

@@ -22,12 +22,6 @@ or import it:
 import './path/to/node_modules/@dannymoerkerke/src/audio-recorder.js';
 ```
 
-You can also import the bundled version which is in `dist` for use with Webpack:
-
-```javascript
-import './path/to/node_modules/@dannymoerkerke/dist/audio-recorder.js';
-```
-
 and add the tag to your page:
 
 ```html
@@ -67,24 +61,6 @@ Available selectors:
 - `::part(volume-button)`: styles the volume buttons
 - `::part(slider)`: styles the volume slider
 - `::part(time)`: styles the elapsed and remaining time display
-
-The buttons and slider are part of the `material-webcomponents` library ([https://dannymoerkerke.github.io/material-webcomponents/](https://dannymoerkerke.github.io/material-webcomponents/))
-
-The Custom CSS properties exposed by these components can be used as part of the styling through `::part`.
-
-For example, the `material-slider` component exposes the properties `--track-size`, `--track-color`, `--thumb-size` and 
-`--thumb-color`.
-
-These can be used in combination with `::part` to style the volume slider:
-
-```css
-audio-recorder::part(slider) {
-  --track-color: #000000;
-  --track-size: 3px;
-  --thumb-color: #000000;
-  --thumb-size: 10px;
-}
-```
 
 ### Demo
 To run the demo, run `npm install` once and then `npm start` and view the demo on
